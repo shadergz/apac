@@ -5,7 +5,7 @@ default_scenario=0
 use_max_cpu=true
 config_filename="settings.toml"
 max_filesize=130
-interface=tui_framework
+interface=tui
 
 [networking]
 limit_traffic_rate=300
