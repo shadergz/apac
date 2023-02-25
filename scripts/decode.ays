@@ -1,0 +1,18 @@
+input_filename = $input
+output_filename = $output:1 # same as $output
+
+; Unpacking the file into the correct output directory, apac will resolve the correct location for us before the control be passed to the script unit
+
+func decode_package {
+    %unpack% into $param1 $param2
+    %disas% dex $param2/classes*.dex
+}
+call decode_package(input_filename, output_filename)
+
+; Disassembling all ELF shared objects files from the lib subdirectory
+
+if exist $input_filename/lib then:
+    %disas% elf $output_filename/lib/*/*.so
+fi
+
+; %decode% ...

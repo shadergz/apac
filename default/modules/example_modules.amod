@@ -1,0 +1,2 @@
+APPEND [[module]] example INTO &MODULES_LIST&
+CHECK [[module]] example b1cb5d6ea4b152034b2eac349a0748d43bbcd16b3b0867b79cc6959ef528abd4 # hash value from example final object will be here

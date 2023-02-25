@@ -1,0 +1,31 @@
+
+[main]
+default_scenario=0
+# max_thread=8 non-used because use_max_cpu was been specified
+use_max_cpu=true
+config_filename="settings.toml"
+max_filesize=130
+interface=tui_framework
+
+[networking]
+limit_traffic_rate=300
+
+[virtualfs]
+max_capacity=1024
+max_file_counts=20000
+
+[log]
+filename="apac.log"
+
+[packages]
+limit_minimum_supported_api="KitKat"
+
+[input]
+default_input="input.apk"
+
+[output]
+unknown_output=["app-out", "out", "package"]
+default_output="output.apk"
+
+[plugins]
+[modules]
