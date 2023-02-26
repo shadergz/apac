@@ -56,7 +56,7 @@ const char* dyn_getsymbolname(const void* addr, dyninfo_t* fill) {
 i32 dyn_unload(external_module_t object) {
 	if (object == NULL) return -1;
 
-	echo_debug(NULL, "Unloading a shared object at %p\n", object);
+	echo_info(NULL, "Unloading a shared object at %p\n", object);
 
 	dlclose(object);
 	return 0;
