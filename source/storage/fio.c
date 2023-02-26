@@ -17,7 +17,7 @@ i32 fio_open(const char* path, const char* perm, storage_fio_t* file) {
 	native_stat_t* stat_buffer = (native_stat_t*)file->rw_cache;
 	const i32 stat_ret = stat(path, stat_buffer);
 
-	if (stat_ret == 0) {
+	if (stat_ret != 0) {
 		file->recerror = errno;
 		return -1;
 	}
