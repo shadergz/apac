@@ -13,7 +13,7 @@ target_sources(apac PRIVATE
     doubly_int.c 
     backend_space.c 
     ocl_hardware.c 
-    sys_object.c
+    dyn_loader.c
 
     storage/dirio.c
     storage/fio.c

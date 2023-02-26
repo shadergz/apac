@@ -1,12 +1,8 @@
-#define _GNU_SOURCE
-
 #include <stdarg.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
-
-#include <dlfcn.h>
 
 #include <sys/ucontext.h>
 
@@ -14,6 +10,8 @@
 #include <layer.h>
 #include <memctrlext.h>
 #include <trace.h>
+
+#include <dyn_loader.h>
 
 void run_raise(i32 rsig) {
 	raise(rsig);
@@ -79,12 +77,13 @@ static void thread_segv_handler(int signum, siginfo_t* info, void* context) {
 		prog_context->uc_mcontext.regs;
 	#endif
 
-	Dl_info retr;
-	dladdr((void*)PC, &retr);
-	if (retr.dli_sname != NULL)
-		fprintf(stderr, "May the function *%s* as caused " 
-				"this error!\n", retr.dli_sname);
-
+	dyninfo_t retr = {};
+	
+	const char* possible = dyn_getsymbolname((void*)PC, &retr);
+	if (possible != NULL) {
+		fprintf(stderr, "May the function *%s* as caused this error!\n", possible);
+	}	
+	
 	fprintf(stderr, "\033[0;32mRegister states:\033[0m\n");
 	for (u8 reg_index = 0; reg_index < sizeof(registers_name)/sizeof(const char*); reg_index++) {
 		fprintf(stderr, "\033[0;38m%s = \033[0;32m%016llx\033[0m\n", registers_name[reg_index],

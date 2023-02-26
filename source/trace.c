@@ -1,12 +1,7 @@
-
-#if defined(__unix__)
-#define _GNU_SOURCE
-#endif
-
-#include <dlfcn.h>
 #include <stdio.h>
 
 #include <trace.h>
+#include <dyn_loader.h>
 
 #if defined(__ANDROID__)
 
@@ -65,26 +60,23 @@ u64 trace_dump(void* captured_frame[], void* user, traceprint_t print_trace, u64
 	
 	u64 frame_idx; 
 	
-	Dl_info dlproc = {};
+	dyninfo_t dlproc = {};
 
-	dladdr((void*)trace_dump, &dlproc);
+	dyn_getinfo((void*)trace_dump, &dlproc);
 	print_trace(0, false, user, "%s", dlproc.dli_fname, dlproc.dli_fbase);
 
 	for (u64 frame_idx = 0; frame_idx < dsp_count; frame_idx++) {
 		const void* addr_buffer = captured_frame[frame_idx];
 		const char* func_symbol = "stripped";
 
-		if (dladdr(addr_buffer, &dlproc)) {
-			if (dlproc.dli_sname != NULL)
-				func_symbol = dlproc.dli_sname;
-			else
-				dlproc.dli_sname = func_symbol;
-		}
+		const char* dynname = dyn_getsymbolname(addr_buffer, &dlproc);
+		if (dynname != NULL)
+			func_symbol = dynname;
 		
 		snprintf(format_trace, sizeof format_trace, 
-				"\t%lu> $ (%%s): [%%#llx]\n", frame_idx);
-		print_trace(frame_idx, true, user, format_trace, 
-				dlproc.dli_sname, addr_buffer);
+				"\t%lu> $(%%s): [%%#llx]\n", frame_idx);
+		print_trace(frame_idx, true, user, format_trace, func_symbol, 
+				addr_buffer);
 	}
 
 	return frame_idx;

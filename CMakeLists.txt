@@ -28,8 +28,9 @@ if (APAC_IS_COMPILING_FOR_HOST)
     target_compile_options(apac PRIVATE -march=native)
 endif()
 
-target_compile_definitions(apac PRIVATE
-    $<$<CONFIG:Debug>:APAC_IS_UNDER_DEBUG=1>)
+target_compile_definitions(apac PRIVATE $<$<CONFIG:Debug>:APAC_IS_UNDER_DEBUG=1>)
+target_compile_definitions(apac PRIVATE _GNU_SOURCE)
+
 
 if (CMAKE_C_COMPILER_ID STREQUAL Clang)
     target_compile_options(apac PRIVATE $<$<CONFIG:Debug>:-gdwarf-4;-fsanitize=address>)
