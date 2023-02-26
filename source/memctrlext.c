@@ -24,9 +24,10 @@ static inline __attribute__((always_inline)) void mem_report(u64 block_size,
 #endif
 
 void* apcalloc(u64 nele, u64 esize) {
-	echo_warning_if(NULL, nele == 0 || esize == 0, 
-			"Attempting to allocate a block with a zero expression "
-			"evaluation, (nele %lu) or (esize %lu) can't be 0!", nele, esize) {
+	if (nele == 0  || esize == 0) {
+		echo_warning(NULL, "Attempting to allocate a block with a zero expression "
+				"evaluation, (nele %lu) or (esize %lu) can't be 0!", 
+				nele, esize);
 		return NULL;
 	}
 	

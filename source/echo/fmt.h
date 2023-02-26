@@ -9,6 +9,9 @@
 #define echo_success(ctx, format, ...)\
 	echo_detailed(ctx, ECHO_LEVEL_SUCCESS, format, __VA_ARGS__)
 
+#define echo_info(ctx, format, ...)\
+	echo_detailed(ctx, ECHO_LEVEL_INFO, format, __VA_ARGS__)
+
 #define echo_error(ctx, format, ...)\
 	echo_detailed(ctx, ECHO_LEVEL_ERROR, format, __VA_ARGS__)
 
@@ -21,17 +24,6 @@
 #else
 #define echo_debug(ctx, format, ...)
 #endif
-
-#define echo_warning_if(ctx, cond, format, ...)\
-	if ((cond))\
-		echo_warning(ctx, format, __VA_ARGS__);\
-	if ((cond))
-
-#define echo_error_if(ctx, cond, format, ...)\
-	if ((cond))\
-		echo_error(ctx, format, __VA_ARGS__);\
-	if ((cond))
-
 
 #endif
 
