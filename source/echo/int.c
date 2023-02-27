@@ -52,12 +52,7 @@ i32 echo_format(apac_ctx_t* apac_ctx, char* msg, u64 msgs, echo_level_e level,
 	if (apac_ctx == NULL) {
 		if (level_id == '\0') return -1;
 
-		const i32 filled = snprintf(msg, msgs, "%c: ?", level_id);
-		if (filled + 1 >= msgs) {
-			*msg = '\0';
-			return -1;
-		}
-		ret = vsnprintf(strchr(msg, '?'), msgs - (filled + 1), format, va);
+		ret = vsnprintf(msg, msgs, format, va);
 	}
 
 	return ret;

@@ -41,16 +41,16 @@ static i32 dsp_help(apac_ctx_t* apac_ctx) {
 	return result;
 }
 
-static const char s_apac_version[] = "0.1.2";
-static const char s_apac_rev[] = "3b";
+static const char s_apac_version[] = "0.1.3";
+static const char s_apac_rev[] = "0a";
 
 static i32 dsp_banner(apac_ctx_t* apac_ctx) {
 	const user_options_t* user   = apac_ctx->user_options;
 	const session_ctx_t* session = apac_ctx->user_session;
 	if (user->dsp_banner == false) return -1;
 
-	const i32 print_res = session->printf_here("apac version %s [rev:%s] Copyright (c) 2023 the"
-		" APAC's developers\n", s_apac_version, s_apac_rev);
+	const i32 print_res = session->printf_here("apac (version %s) rev.%s Copyright (c) 2023 the"
+		" apac's developers\n", s_apac_version, s_apac_rev);
 
 	return print_res;
 }

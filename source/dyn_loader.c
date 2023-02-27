@@ -19,7 +19,7 @@ external_module_t dyn_loadbyname(const char* object_file) {
 		return NULL;
 	}
 
-	echo_info(NULL, "New object loaded with address %p\n from pathname %s\n", 
+	echo_info(NULL, "New object loaded with address %p from pathname %s\n", 
 			shared, object_file);
 
 	return shared;
