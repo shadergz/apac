@@ -17,16 +17,15 @@ i32 fio_open(const char* path, const char* perm, storage_fio_t* file) {
 	native_stat_t* stat_buffer = (native_stat_t*)file->rw_cache;
 	const i32 stat_ret = stat(path, stat_buffer);
 
-	if (stat_ret != 0) {
-		file->recerror = errno;
-		return -1;
-	}
+	if (stat_ret != 0) goto ferror;
 
 	if (!S_ISREG(stat_buffer->st_mode) && S_ISLNK(stat_buffer->st_mode)) {
 		#define REAL_FILENAME_SZ 0x32
 		char real_fn[REAL_FILENAME_SZ];
 
-		readlink(path, real_fn, sizeof real_fn - 1);
+		const i32 ret = readlink(path, real_fn, sizeof real_fn - 1);
+		if (ret == -1) goto ferror;
+
 		file->real_filename = strdup(real_fn);
 
 		file->is_link = true;
@@ -45,12 +44,13 @@ i32 fio_open(const char* path, const char* perm, storage_fio_t* file) {
 	const native_perms_t perms = native_solve_perms(perm);
 	file->file_fd = open(path, flags, perms);
 
-	if (file->file_fd < 3) {
-		fio_finish(file);
-		return -1;
-	}
+	if (file->file_fd < 3) goto ferror;
 
 	return 0;
+
+	ferror:
+	file->recerror = errno;
+	return -1;
 }
 
 i32 fio_finish(storage_fio_t* file) {
@@ -68,6 +68,9 @@ i32 fio_finish(storage_fio_t* file) {
 }
 
 const char* fio_getpath(const storage_fio_t* file) {
+	if (file == NULL) return NULL;
+	if (file->is_link) return file->real_filename;
+
 	return file->file_path;
 }
 

@@ -4,12 +4,15 @@
 #include <backend_space.h>
 #include <ocl_hardware.h>
 #include <memctrlext.h>
+#include <tip.h>
 
 #include <storage/fio.h>
+#include <echo/fmt.h>
 
 static i32 back_load_ocl(apac_ctx_t* apac_ctx) {
 	backend_ctx_t* core = apac_ctx->core_backend;
 	core->ocl_shared = apmalloc(sizeof(storage_fio_t));
+	
 	opencl_int_t* interface = core->ocl_interface;
 	interface->ocl_driver = NULL;
 
@@ -32,6 +35,9 @@ static i32 back_load_ocl(apac_ctx_t* apac_ctx) {
 
 	snprintf(ocl_pathname, sizeof ocl_pathname, "%s/libOpenCL.so", ocl_system);
 	if (fio_open(ocl_pathname, "ref", core->ocl_shared) == 0) goto load_now;
+
+	echo_error(apac_ctx, "Can't found a valid OpenCL driver on your system's paths");
+	tip_ocl_driver("OCL_NOT_FOUND");
 
 	/* Can't found a valid OpenCL reference! */
 	return -1;

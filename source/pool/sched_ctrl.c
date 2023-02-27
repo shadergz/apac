@@ -62,7 +62,7 @@ i32 sched_init(apac_ctx_t* apac_ctx) {
 	const i32 vec_ret = vec_init(sizeof(schedthread_t), SCHED_DEF_THREAD_CNT, gov->thread_info_vec);
 
 	if (vec_ret == 0 && (sched_configure(0, apac_ctx) != NULL)) {
-		sched_setname("apac_ctx Core", apac_ctx);
+		sched_setname("Apac Core", apac_ctx);
 		return 0;
 	}
 	

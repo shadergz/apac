@@ -14,6 +14,7 @@ target_sources(apac PRIVATE
     backend_space.c 
     ocl_hardware.c 
     dyn_loader.c
+    tip.c
 
     storage/dirio.c
     storage/fio.c
