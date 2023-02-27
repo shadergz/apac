@@ -33,7 +33,7 @@ storage_tree_t* tree_solve_rel(const char* rpath, storage_tree_t* root) {
 }
 
 // Fetch a tree structure from user real fs path
-storage_tree_t* tree_from_userdir(const char* user, storage_tree_t* root) {
+storage_tree_t* tree_getfromuser(const char* user, storage_tree_t* root) {
 	return root;
 }
 
@@ -50,7 +50,7 @@ i32 tree_fetch_rel(storage_tree_t* here, char* out, u64 out_size, storage_tree_t
 i32 tree_open_dir(storage_dirio_t* place, const char* user_path, apac_ctx_t* apac_ctx) {
 
 	storage_tree_t* root = apac_ctx->root;
-	storage_tree_t* dir_put = tree_from_userdir(user_path, root);
+	storage_tree_t* dir_put = tree_getfromuser(user_path, root);
 	if (dir_put == NULL) return -1;
 
 	/* Runtime execution directory is used as the root of our system, everything that
@@ -73,9 +73,28 @@ i32 tree_open_dir(storage_dirio_t* place, const char* user_path, apac_ctx_t* apa
 	return 0;
 }
 
+storage_fio_t* tree_getfile(const char* filename, apac_ctx_t* apac_ctx) {
+	if (filename == NULL || apac_ctx == NULL) return NULL;
+	#define TREE_FILE_MATCH(file, name)\
+		if ((strncmp(file->file_name, name, strlen(file->file_name)) == 0))
+
+	storage_tree_t* dirlocal = tree_getfromuser(filename, apac_ctx->root);
+
+	doubly_reset(dirlocal->leafs);
+
+	for (storage_fio_t* cursor = NULL; 
+		(cursor = doubly_next(dirlocal->leafs)) != NULL; ) {		
+	
+		TREE_FILE_MATCH(cursor, filename) return cursor;
+	}
+
+	doubly_reset(dirlocal->leafs);
+	return NULL;
+}
+
 i32 tree_open_file(storage_fio_t* file, const char* path, const char* perm, apac_ctx_t* apac_ctx) {
 	storage_tree_t* root = apac_ctx->root;
-	storage_tree_t* dir_put = tree_from_userdir(path, root);
+	storage_tree_t* dir_put = tree_getfromuser(path, root);
 	if (dir_put == NULL) return -1;
 
 	i32 fio_ret = fio_open(path, perm, file);

@@ -12,6 +12,8 @@ u64 tree_resolve(const char* hrpath, storage_tree_t* root);
 i32 tree_open_dir(storage_dirio_t* place, const char* user_path, apac_ctx_t* apac_ctx);
 i32 tree_open_file(storage_fio_t* file, const char* path, const char* perm, apac_ctx_t* apac_ctx);
 
+storage_fio_t* tree_getfile(const char* filename, apac_ctx_t* apac_ctx);
+
 i32 tree_deattach(storage_tree_t* node); 
 
 i32 tree_attach_dir(storage_tree_t* parent, storage_dirio_t* dir);

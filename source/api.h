@@ -31,6 +31,8 @@ typedef struct doublydie {
 
 	struct doublydie* next;
 	struct doublydie* prev;
+
+	struct doublydie* cursor;
 } doublydie_t;
 
 typedef struct spinlocker {
@@ -75,7 +77,7 @@ typedef struct storage_fio {
 	i32 file_fd;
 	i32 recerror;
 
-	bool is_link;
+	bool is_link, is_locked;
 
 	// The size of a memory page `chunk/block` (4096 bytes)
 	#define FIO_DATA_CACHE_SZ 1 << 12

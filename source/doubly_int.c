@@ -1,3 +1,4 @@
+
 #include <string.h>
 
 #include <memctrlext.h>
@@ -12,6 +13,22 @@ i32 doubly_init(doublydie_t* doubly) {
 	doubly->prev = NULL;
 
 	return 0;
+}
+
+i32 doubly_reset(doublydie_t* doubly) {
+	if (doubly == NULL) return -1;
+	doubly->cursor = doubly;
+
+	return 0;
+}
+
+void* doubly_next(doublydie_t* doubly) {
+	doublydie_t* cursor = doubly->cursor;
+
+	void* ddata = cursor->node_data;
+	doubly->cursor = cursor->next;
+
+	return ddata;
 }
 
 i32 doubly_insert(void* data, doublydie_t* doubly) {
