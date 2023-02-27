@@ -36,7 +36,7 @@ static i32 back_load_ocl(apac_ctx_t* apac_ctx) {
 	snprintf(ocl_pathname, sizeof ocl_pathname, "%s/libOpenCL.so", ocl_system);
 	if (fio_open(ocl_pathname, "ref", core->ocl_shared) == 0) goto load_now;
 
-	echo_error(apac_ctx, "Can't found a valid OpenCL driver on your system's paths");
+	echo_error(apac_ctx, "Can't found a valid OpenCL driver on your system paths");
 	tip_ocl_driver("OCL_NOT_FOUND");
 
 	/* Can't found a valid OpenCL reference! */

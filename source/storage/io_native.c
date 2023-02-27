@@ -36,6 +36,7 @@ native_perms_t native_solve_perms(const char* perms) {
 
 	native_perms_t ret = 0;
 	char perm_sequence[4] = {};
+	
 	strncpy(perm_sequence, perm_cur, 3);
 
 	i32 octal = strtoul(perm_sequence, NULL, 8);

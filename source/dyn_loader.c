@@ -8,19 +8,19 @@ i32 dyn_getinfo(const void* addr, dyninfo_t* fill) {
 	if (addr == NULL || fill == NULL) return -1;
 	return dladdr(addr, fill);
 }
-external_module_t dyn_loadbyname(const char* object_file) {
-	if (object_file == NULL) return NULL;
+external_module_t dyn_loadbyname(const char* objfile) {
+	if (objfile == NULL) return NULL;
 
-	void* shared = dlopen(object_file, RTLD_LAZY);
+	void* shared = dlopen(objfile, RTLD_LAZY);
 
 	if (shared == NULL) {
 		echo_error(NULL, "Can't load a shared object with "
-				"pathname: %s, because of %s\n", object_file, dlerror());
+				"pathname: %s, because of %s\n", objfile, dlerror());
 		return NULL;
 	}
 
 	echo_info(NULL, "New object loaded with address %p from pathname %s\n", 
-			shared, object_file);
+			shared, objfile);
 
 	return shared;
 
@@ -53,12 +53,12 @@ const char* dyn_getsymbolname(const void* addr, dyninfo_t* fill) {
 	return possible_name != NULL ? possible_name : "unresolvable";
 }
 
-i32 dyn_unload(external_module_t object) {
-	if (object == NULL) return -1;
+i32 dyn_unload(external_module_t objaddr) {
+	if (objaddr == NULL) return -1;
 
-	echo_info(NULL, "Unloading a shared object at %p\n", object);
+	echo_info(NULL, "Unloading a shared object (SO) at %p\n", objaddr);
 
-	dlclose(object);
+	dlclose(objaddr);
 	return 0;
 }
 

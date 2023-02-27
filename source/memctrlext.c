@@ -35,7 +35,6 @@ void* apcalloc(u64 nele, u64 esize) {
 		"aligned pointer with calloc");
 	
 	void* new = calloc(nele, esize);
-	
 	#if MALLOC_DEBUG
 	mem_report(nele * esize, new, "apcalloc");
 	#endif

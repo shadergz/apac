@@ -85,8 +85,8 @@ typedef struct storage_fio {
 } storage_fio_t;
 
 typedef enum storage_node_id {
-	SOLID_NODE_ID_DIR =  1000,
-	SOLID_NODE_ID_FILE = 1111,
+	STORAGE_NODE_ID_DIR =  1000,
+	STORAGE_NODE_ID_FILE = 1111,
 } storage_node_id_e;
 
 typedef struct storage_tree {
@@ -145,6 +145,13 @@ typedef struct backend_ctx {
 
 } backend_ctx_t;
 
+typedef struct lockerproc {
+	u16 locker_pid;
+	u16 saved_st;
+	u16 time;
+
+} lockerproc_t;
+
 typedef struct apac_ctx {
 	user_options_t* user_options;
 	
@@ -157,6 +164,8 @@ typedef struct apac_ctx {
 	backend_ctx_t* core_backend;
 
 	storage_tree_t* root;
+
+	lockerproc_t* locker;
 } apac_ctx_t;
 
 #endif

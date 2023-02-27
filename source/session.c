@@ -19,7 +19,6 @@ static i32 main_msg(const char* fmt, ...) __attribute__((format(printf, 1, 2)));
 
 static i32 main_msg(const char* fmt, ...) {
 	va_list fmt_va;
-	
 	va_start(fmt_va, fmt);
 	
 	const i32 fmt_out = vfprintf(stderr, fmt, fmt_va);
@@ -49,8 +48,8 @@ static i32 dsp_banner(apac_ctx_t* apac_ctx) {
 	const session_ctx_t* session = apac_ctx->user_session;
 	if (user->dsp_banner == false) return -1;
 
-	const i32 print_res = session->printf_here("apac (version %s) rev.%s Copyright (c) 2023 the"
-		" apac's developers\n", s_apac_version, s_apac_rev);
+	const i32 print_res = session->printf_here("apac (version %s) rev.%s Copyright (c) 2023 the "
+		"apac's developers\n", s_apac_version, s_apac_rev);
 
 	return print_res;
 }

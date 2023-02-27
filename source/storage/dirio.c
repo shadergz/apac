@@ -6,6 +6,10 @@
 #include <unistd.h>
 #include <fcntl.h>
 
+const char* dirio_getname(storage_dirio_t* dir) {
+	return dir->dir_path;
+}
+
 i32 dirio_open(const char* path, const char* perms, storage_dirio_t* dir) {
 	if (dir == NULL) return -1;
 	dir->dir_path = strdup(path);

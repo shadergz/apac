@@ -4,6 +4,11 @@
 #include <rt.h>
 
 i32 locker_init(apac_ctx_t* apac_ctx) {
+
+	storage_tree_t* root = apac_ctx->root;
+	lockerproc_t* locker = apac_ctx->locker;
+	
+
 	return 0;
 }
 
@@ -20,7 +25,7 @@ i32 locker_release(apac_ctx_t* apac_ctx) {
 	if (__builtin_expect(apac_ctx == NULL, 0)) {
 		#define RUN_DIR_SZ 0x100
 		char run[RUN_DIR_SZ];
-		run_regedir(&run, sizeof run - 1);
+		run_getedir(&run, sizeof run - 1);
 
 	}
 	
