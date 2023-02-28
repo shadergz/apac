@@ -86,5 +86,5 @@ i32 echo_deinit(apac_ctx_t* apac_ctx) {
 	return 0;
 }
 
-const char* assert_format = "Assertion caught at %4d:%10s in function *%s*, because (`%s`) %s\n";
+const char* assert_format = "Assertion caught at %4d:%10s in function *%s*, because of (`%s`) %s\n";
 

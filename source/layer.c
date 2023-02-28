@@ -23,7 +23,7 @@ i32 layer_vasprintf(char** restrict lstrp, const char* restrict lfmt, va_list la
 	if (*lstrp != NULL) return -1;
 
 	*lstrp = apmalloc(explicit_align(++needed, 4));
-	if (lstrp == NULL) return -1;
+	if (*lstrp == NULL) return -1;
 
 	return vsprintf(*lstrp, lfmt, lap);
 }
