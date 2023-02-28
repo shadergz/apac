@@ -11,7 +11,10 @@ enum storage_flags {
 	STORAGE_FLAG_DIRECTORY    = O_DIRECTORY,
 	STORAGE_FLAG_READ         = O_RDONLY,
 	STORAGE_FLAG_WRITE        = O_WRONLY,
-	STORAGE_FLAG_FILE         = ~O_DIRECTORY
+	STORAGE_FLAG_RW           = O_RDWR,
+	STORAGE_FLAG_FILE         = ~O_DIRECTORY,
+
+	STORAGE_FLAG_CREAT        = O_CREAT
 };
 
 enum storage_perms {
