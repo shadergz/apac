@@ -22,7 +22,7 @@ target_compile_options(apac PRIVATE -Wall -Wno-uninitialized -pipe -Wno-ignored-
 	$<$<CONFIG:Release>:-Ofast;-fstack-protector-strong;-fvisibility=hidden>
 	$<$<CONFIG:Debug>:-Og;>)
 
-target_link_options(apac PRIVATE $<$<CONFIG:Debug>:-rdynamic;>)
+target_link_options(apac PRIVATE -rdynamic)
 
 if (APAC_IS_COMPILING_FOR_HOST)
 	target_compile_options(apac PRIVATE -march=native)
