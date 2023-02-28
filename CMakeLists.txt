@@ -19,13 +19,13 @@ add_executable(apac)
 add_subdirectory(modules)
 
 target_compile_options(apac PRIVATE -Wall -Wno-uninitialized -pipe -Wno-ignored-attributes
-    $<$<CONFIG:Release>:-Ofast;-fstack-protector-strong;-fvisibility=hidden>
-    $<$<CONFIG:Debug>:-Og;>)
+	$<$<CONFIG:Release>:-Ofast;-fstack-protector-strong;-fvisibility=hidden>
+	$<$<CONFIG:Debug>:-Og;>)
 
 target_link_options(apac PRIVATE $<$<CONFIG:Debug>:-rdynamic;>)
 
 if (APAC_IS_COMPILING_FOR_HOST)
-    target_compile_options(apac PRIVATE -march=native)
+	target_compile_options(apac PRIVATE -march=native)
 endif()
 
 target_compile_definitions(apac PRIVATE $<$<CONFIG:Debug>:APAC_IS_UNDER_DEBUG=1>)
@@ -33,13 +33,13 @@ target_compile_definitions(apac PRIVATE _GNU_SOURCE)
 
 
 if (CMAKE_C_COMPILER_ID STREQUAL Clang)
-    target_compile_options(apac PRIVATE $<$<CONFIG:Debug>:-gdwarf-4;-fsanitize=address>)
-    if (LINUX)
-        target_link_options(apac PRIVATE $<$<CONFIG:Debug>:-lasan>)
-    endif()
+	target_compile_options(apac PRIVATE $<$<CONFIG:Debug>:-gdwarf-4;-fsanitize=address>)
+    	if (LINUX)
+		target_link_options(apac PRIVATE $<$<CONFIG:Debug>:-lasan>)
+	endif()
 
 elseif(CMAKE_C_COMPILER_ID STREQUAL GNU)
-    target_compile_options(apac PRIVATE $<$<CONFIG:Debug>:-ggdb;-grecord-gcc-switches>)
+	target_compile_options(apac PRIVATE $<$<CONFIG:Debug>:-ggdb;-grecord-gcc-switches>)
 endif()
 
 add_subdirectory(OpenCL-Headers)
