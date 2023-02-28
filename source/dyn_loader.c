@@ -43,7 +43,7 @@ const char* dyn_getsymbolname(const void* addr, dyninfo_t* fill) {
 	const i32 ret = dladdr(addr, fill);
 
 	echo_debug(NULL, "Attempting to locate a object symbol " 
-		"name with %p address has %s\n", addr, ret != 0 ? "successed" : "failed");
+		"name with %p address has %s\n", addr, fill->dli_sname ? "successed" : "failed");
 	if (ret == 0) {
 		memset(fill, 0, sizeof *fill);
 		return NULL;
