@@ -29,12 +29,6 @@ u32 tree_makeroot(const char* relative, apac_ctx_t* apac_ctx) {
 	return (u32)root->node_level;
 }
 
-storage_tree_t* tree_solve_rel(const char* rpath, storage_tree_t* root) {
-	if (root->node_id == 0) return NULL;
-	if (*rpath == '.' && *(rpath + 1) == '\0' ) return root;
-	return NULL;
-}
-
 // Fetch a tree structure from user real fs path
 storage_tree_t* tree_getfromuser(const char* user, storage_tree_t* root) {
 	return root;
@@ -60,15 +54,13 @@ i32 tree_detach_file(storage_tree_t* from, const char* restrict relative, storag
 			if (next->node_id == STORAGE_NODE_ID_DIR) continue;
 			storage_fio_t* nfile = next->node_file;
 
-			if (nfile == NULL) 
+			if (nfile == NULL)
 				return -1;
 
 			layer_asprintf(&file_relative, "%s/%s", 
 				nfile->file_rel, nfile->file_name);
-
 			if (strncmp(file_relative, relative, 
 				strlen(file_relative)) != 0) continue;
-
 			/* We have found the correct relative pathname file object
 			 * dropping the actual node pointed by `cursor`! */
 			doubly_drop(from->leafs);
@@ -111,7 +103,7 @@ i32 tree_open_dir(storage_dirio_t* place, const char* user_path, apac_ctx_t* apa
 	i32 dirio = dirio_open(user_path, "d:7-", place);
 	if (dirio != 0) {
 		echo_error(apac_ctx, "Can't open a directory (%s) inside the tree "
-			"(%s)", user_path, dirio_getname(dir_put->node_dir));	
+			"(%s)\n", user_path, dirio_getname(dir_put->node_dir));	
 		return dirio;
 	}
 	
@@ -137,7 +129,9 @@ storage_fio_t* tree_getfile(const char* relative, apac_ctx_t* apac_ctx) {
 		storage_fio_t* fnode = cursor->node_file;
 
 		char* full_relpath = NULL;
-		layer_asprintf(&full_relpath, "%s/%s", fnode->file_rel, fnode->file_name);
+		layer_asprintf(&full_relpath, "%s/%s", 
+			fnode->file_rel, fnode->file_name);
+		
 		if (strncmp(full_relpath, relative, strlen(full_relpath)) == 0)
 			desired = fnode;
 		apfree(full_relpath);
@@ -154,12 +148,13 @@ i32 tree_open_file(storage_fio_t* file, const char* path, const char* perm, apac
 
 	i32 fio_ret = fio_open(path, perm, file);
 	if (fio_ret != 0) {
-		echo_error(apac_ctx, "Can't open a file with pathname %s", path);
+		echo_error(apac_ctx, "Can't open a file with pathname %s\n", path);
 		return fio_ret;
 	}
 
 	fio_ret = tree_attach_file(dir_put, file);
-	if (fio_ret != 0)
+
+	if (fio_ret < 0)
 		return fio_ret;
 	
 	char fnrel[TREE_PATH_MAX_REL];
@@ -216,6 +211,7 @@ i32 tree_attach_file(storage_tree_t* with, storage_fio_t* file) {
 
 	storage_tree_t* file_fs = (storage_tree_t*)apmalloc(sizeof(*with));
 	if (file_fs == NULL) return -1;
+
 	tree_fill(with, file_fs, file, NULL);
 
 	const i32 ret = doubly_insert(file_fs, with->leafs);

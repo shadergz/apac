@@ -49,8 +49,13 @@ static const char* s_locker_format =
 	"TIME:  %04d\n";
 
 i32 locker_acquire(apac_ctx_t* apac_ctx) {
-
+	
 	storage_fio_t* driver = tree_getfile("./lock.alock", apac_ctx);
+	if (!driver) {
+		echo_error(apac_ctx, "Can't locate the locker process file inside the tree\n");
+		return -1;
+	}
+
 	bool has_locked = driver->is_locked;
 
 	i32 st = 0, pid = 0, time = 0;
@@ -65,7 +70,7 @@ i32 locker_acquire(apac_ctx_t* apac_ctx) {
 
 		}
 	}
-
+	fio_lock(driver, FIO_LOCKER_WRITE);
 	lockerproc_t* locker = apac_ctx->locker;
 
 	fio_seekbuffer(driver, 0, FIO_SEEK_SET);

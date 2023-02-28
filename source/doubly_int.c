@@ -61,7 +61,7 @@ void* doubly_drop(doublydie_t* doubly) {
 }
 
 void* doubly_next(doublydie_t* doubly) {
-	doublydie_t* cursor = doubly->cursor;
+	volatile doublydie_t* cursor = doubly->cursor;
 	
 	// We're reached at end
 	if (cursor == doubly) return NULL;
@@ -81,13 +81,13 @@ void* doubly_next(doublydie_t* doubly) {
 
 i32 doubly_insert(void* data, doublydie_t* doubly) {
 	doublydie_t* newnode = NULL;
+	i32 pos = 0;
 
 	if (doubly->node_data == NULL) {
 		newnode = doubly;
 		goto attribute;
 	}
 
-	i32 pos = 1; 
 	while (doubly->next) {
 		doubly = doubly->next;
 		pos++;

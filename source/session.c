@@ -42,7 +42,7 @@ static i32 dsp_help(apac_ctx_t* apac_ctx) {
 }
 
 static const char s_apac_version[] = "0.1.3";
-static const char s_apac_rev[] = "0b";
+static const char s_apac_rev[] = "ab";
 
 static i32 dsp_banner(apac_ctx_t* apac_ctx) {
 	const user_options_t* user   = apac_ctx->user_options;

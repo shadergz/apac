@@ -126,6 +126,11 @@ i32 fio_writef(storage_fio_t* file, const char* restrict format, ...) {
 }
 
 i32 fio_finish(storage_fio_t* file) {
+	if (file->is_locked) {
+		echo_info(NULL, "Unlocking the file with filename %s\n", file->file_name);
+		fio_unlock(file);
+	}
+
 	if (file->is_link)   apfree((char*)file->real_filename);
 	if (file->file_name) apfree((char*)file->file_name);
 	
@@ -133,13 +138,8 @@ i32 fio_finish(storage_fio_t* file) {
 		apfree((char*)file->file_path);
 	}
 
+	
 	file->file_path = file->file_name = NULL;
-
-	if (file->is_locked) {
-		echo_info(NULL, "Unlocking the file with pathname %s\n", file->real_filename);
-		fio_unlock(file);
-	}
-
 	const i32 cl = fio_close(file);
 
 	return cl;
