@@ -73,6 +73,7 @@ typedef struct storage_fio {
 	const char* file_path;
 	const char* file_name;
 	const char* real_filename;
+	const char* file_rel;
 
 	i32 file_fd;
 	i32 recerror;
