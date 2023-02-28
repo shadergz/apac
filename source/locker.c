@@ -49,7 +49,7 @@ static const char* s_locker_format =
 	"TIME:  %04d\n";
 
 i32 locker_acquire(apac_ctx_t* apac_ctx) {
-	
+
 	storage_fio_t* driver = tree_getfile("./lock.alock", apac_ctx);
 	if (!driver) {
 		echo_error(apac_ctx, "Can't locate the locker process file inside the tree\n");
@@ -87,9 +87,13 @@ i32 locker_release(apac_ctx_t* apac_ctx) {
 	if (__builtin_expect(apac_ctx == NULL, 0)) {
 		#define RUN_DIR_SZ 0x80
 		char run[RUN_DIR_SZ];
+		char locker_filepath[RUN_DIR_SZ + 0x20];
 		run_getedir((char**)&run, sizeof run - 1);
 
-		remove(run);
+		snprintf(locker_filepath, sizeof locker_filepath, 
+			"%s/lock.alock", run);
+
+		remove(locker_filepath);
 		echo_info(NULL, "Locker file %s was removed\n");
 	}
 

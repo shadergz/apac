@@ -10,6 +10,7 @@
 #include <layer.h>
 #include <memctrlext.h>
 #include <trace.h>
+#include <locker.h>
 
 #include <dyn_loader.h>
 
@@ -99,6 +100,8 @@ static void thread_segv_handler(int signum, siginfo_t* info, void* context) {
 	void* back_array[BACK_MAX_LEVEL];
 	u64 trace_hooked = trace_capture(back_array, BACK_MAX_LEVEL);
 	trace_dump(back_array, NULL, rt_dump, trace_hooked);
+
+	locker_release(NULL);
 
 	// I regret nothing... 
 	exit(-1);
