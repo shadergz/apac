@@ -6,6 +6,7 @@
 #include <embed/user.h>
 
 #include <rt.h>
+#include <locker.h>
 #include <memctrlext.h>
 #include <storage/dirio.h>
 #include <storage/tree.h>
@@ -41,7 +42,7 @@ static i32 dsp_help(apac_ctx_t* apac_ctx) {
 }
 
 static const char s_apac_version[] = "0.1.3";
-static const char s_apac_rev[] = "0a";
+static const char s_apac_rev[] = "0b";
 
 static i32 dsp_banner(apac_ctx_t* apac_ctx) {
 	const user_options_t* user   = apac_ctx->user_options;
@@ -102,7 +103,7 @@ i32 session_makestorage(apac_ctx_t* apac_ctx) {
 	char* exec_dir = NULL;
 	run_getedir(&exec_dir, DIRIO_MAXPATH_SZ);
 	// Now the directory is under control by our filesystem handler
-	const i32 tree_ret = tree_makeroot(exec_dir, apac_ctx);
+	const i32 tree_ret = tree_makeroot(".", apac_ctx);
 	// exec_dir ins't more needed
 	apfree(exec_dir);
 
@@ -112,6 +113,20 @@ i32 session_makestorage(apac_ctx_t* apac_ctx) {
 i32 session_backend(apac_ctx_t* apac_ctx) {
 	back_init(apac_ctx);
 
+	return 0;
+}
+
+i32 session_lock(apac_ctx_t* apac_ctx) {
+	locker_init(apac_ctx);
+	locker_acquire(apac_ctx);
+
+	return 0;
+}
+
+i32 session_unlock(apac_ctx_t* apac_ctx) {
+	locker_release(apac_ctx);
+	locker_deinit(apac_ctx);
+	
 	return 0;
 }
 
@@ -126,15 +141,13 @@ i32 session_init(i32 argc, char* argv[], apac_ctx_t* apac_ctx) {
 	session_makestorage(apac_ctx);
 	session_backend(apac_ctx);
 
+	session_lock(apac_ctx);	
+
 	return 0;
 }
 
 i32 session_deinit(apac_ctx_t* apac_ctx) {
 	back_deinit(apac_ctx);
-	tree_collapse(apac_ctx);
-	
-	apfree(apac_ctx->root);
-	apac_ctx->root = NULL;
 
 	const user_options_t* user_opts = apac_ctx->user_options;
 	
@@ -144,6 +157,12 @@ i32 session_deinit(apac_ctx_t* apac_ctx) {
 
 	user_cli_deinit(apac_ctx);
 	sched_deinit(apac_ctx);
+
+	session_unlock(apac_ctx);
+
+	tree_close(apac_ctx->root, true);	
+	apfree(apac_ctx->root);
+	apac_ctx->root = NULL;
 
 	return 0;
 }

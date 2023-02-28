@@ -44,9 +44,9 @@ void* apcalloc(u64 nele, u64 esize) {
 
 void* apmalloc(u64 rsize) {
 	if (rsize >= MALLOC_MAX_LIMIT) {
-		#define apmalloc_CALLOC_PARAM 1
+		#define AP_CALLOC_PARAM 1
 
-		void* nptr = apcalloc(apmalloc_CALLOC_PARAM, rsize);	
+		void* nptr = apcalloc(AP_CALLOC_PARAM, rsize);	
 		return nptr;
 	}
 

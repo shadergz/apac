@@ -53,5 +53,7 @@ u64 inline __attribute__((always_inline)) dirio_getentries
 native_flags_t native_solve_flags(const char* flags);
 native_perms_t native_solve_perms(const char* perms);
 
+native_perms_t native_default_perms(storage_node_id_e node_type);
+
 #endif
 

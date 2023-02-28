@@ -17,13 +17,61 @@ i32 doubly_init(doublydie_t* doubly) {
 
 i32 doubly_reset(doublydie_t* doubly) {
 	if (doubly == NULL) return -1;
-	doubly->cursor = doubly;
+	doubly->cursor = NULL;
 
 	return 0;
 }
 
+doublydie_t* droubly_move(doublydie_t* here, doublydie_t* from) {
+	if (!from) {
+		memset(here, 0, sizeof(*here));
+		return NULL;
+	}
+
+	here->cursor = from->cursor;
+	here->next = from->next;
+	here->prev = from->prev;
+
+	here->node_crc = from->node_crc;
+
+	return from;
+}
+
+void* doubly_drop(doublydie_t* doubly) {
+	doublydie_t* rm = doubly->cursor;
+	if (!rm || rm == doubly) {
+		void* user = doubly->node_data;
+		doublydie_t* discard = droubly_move(doubly, doubly->next);
+		if (!discard) apfree(discard);
+		else memset(doubly, 0, sizeof(*doubly));
+		
+		return user;
+	}
+	
+	void* user = rm->node_data;; 
+	
+	if (!rm->prev)
+		memset(rm, 0, sizeof(*rm));
+	else rm->prev->next = rm->next;
+	
+	if (rm->next) rm->next->prev = rm->prev;
+
+	apfree(rm);
+	return user;
+}
+
 void* doubly_next(doublydie_t* doubly) {
 	doublydie_t* cursor = doubly->cursor;
+	
+	// We're reached at end
+	if (cursor == doubly) return NULL;
+
+	if (cursor == NULL && doubly->node_data != NULL) {
+		doubly->cursor = doubly;
+		return doubly->node_data;
+	}
+
+	if (cursor == NULL) return NULL;
 
 	void* ddata = cursor->node_data;
 	doubly->cursor = cursor->next;
@@ -32,16 +80,12 @@ void* doubly_next(doublydie_t* doubly) {
 }
 
 i32 doubly_insert(void* data, doublydie_t* doubly) {
-	doublydie_t* new_node = apmalloc(sizeof *doubly);
-	if (new_node == NULL || doubly->prev != NULL) return -1;
+	doublydie_t* newnode = NULL;
 
 	if (doubly->node_data == NULL) {
-		doubly->node_data = data;
-		return 0;
-	} else if (doubly->next) doubly = doubly->next;
-
-	new_node->next = NULL;
-	new_node->node_data = data;
+		newnode = doubly;
+		goto attribute;
+	}
 
 	i32 pos = 1; 
 	while (doubly->next) {
@@ -49,10 +93,17 @@ i32 doubly_insert(void* data, doublydie_t* doubly) {
 		pos++;
 	}
 
-	new_node->prev = doubly;
-	
-	doubly->next = new_node;
-	doubly->node_crc = cyclic32_checksum(new_node->node_data, sizeof(void*));
+	newnode = (doublydie_t*)apmalloc(sizeof *doubly);
+	newnode->next = NULL;
+
+	attribute:
+	if (newnode != doubly) {
+		newnode->prev = doubly;
+		doubly->next = newnode;
+	}
+		
+	newnode->node_data = data;
+	newnode->node_crc = cyclic32_checksum(newnode->node_data, sizeof(void*));
 
 	return pos;
 }

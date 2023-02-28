@@ -14,7 +14,10 @@ i32 dirio_open(const char* path, const char* perms, storage_dirio_t* dir) {
 	if (dir == NULL) return -1;
 	dir->dir_path = strdup(path);
 	// This piece of memory doesn't needed to be allocated because it's part of `dir_path`
-	dir->dir_name = strrchr(dir->dir_path, '/') + 1;
+	dir->dir_name = strrchr(dir->dir_path, '/');
+	if (dir->dir_name == NULL)
+		dir->dir_name = dir->dir_path;
+	else dir->dir_name++;
 
 	const native_flags_t native_perm = native_solve_flags(perms);
 	const native_perms_t native_mode = native_solve_perms(perms);
