@@ -94,7 +94,7 @@ i32 locker_release(apac_ctx_t* apac_ctx) {
 			"%s/lock.alock", run);
 
 		remove(locker_filepath);
-		echo_info(NULL, "Locker file %s was removed\n");
+		echo_info(NULL, "Locker file %s was removed\n", locker_filepath);
 	}
 
 	storage_fio_t* driver = tree_getfile("./lock.alock", apac_ctx);
