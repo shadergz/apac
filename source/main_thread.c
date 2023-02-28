@@ -1,3 +1,4 @@
+
 #include <stdio.h>
 
 #include <api.h>
@@ -25,6 +26,7 @@ static i32 apac_init(apac_ctx_t* apac_ctx) {
 	apac_ctx->core_backend  = (backend_ctx_t*) apmalloc(sizeof(backend_ctx_t));
 	apac_ctx->governor      = (schedgov_t*)    apmalloc(sizeof(schedgov_t));
 	apac_ctx->root          = (storage_tree_t*)apmalloc(sizeof(storage_tree_t));
+	apac_ctx->locker        = (lockerproc_t*)  apmalloc(sizeof(lockerproc_t));
 
 	apac_san(apac_ctx);
 	return 0;
@@ -39,6 +41,7 @@ static i32 apac_deinit(apac_ctx_t* apac_ctx) {
 	if (apac_ctx->governor != NULL)     apfree(apac_ctx->governor);
 
 	if (apac_ctx->root != NULL)         apfree(apac_ctx->root);
+	if (apac_ctx->locker != NULL)       apfree(apac_ctx->locker);
 
 	return 0;
 }
@@ -49,11 +52,13 @@ i32 main(i32 argc, char** argv) {
 	apac_ctx_t* apac_main = (apac_ctx_t*)apmalloc(sizeof(apac_ctx_t));
        	
 	apac_init(apac_main);
+
 	session_init(argc, argv, apac_main);
 	
 	puts("Hello World my nobre!");
 
 	session_deinit(apac_main);
+
 	apac_deinit(apac_main);
 
 	apfree(apac_main);
