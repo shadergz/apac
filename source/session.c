@@ -31,7 +31,7 @@ static i32 dsp_help(apac_ctx_t* apac_ctx) {
 }
 
 static const char s_apac_version[] = "0.1.4";
-static const char s_apac_rev[] = "a0";
+static const char s_apac_rev[] = "a1";
 
 static i32 dsp_banner(apac_ctx_t* apac_ctx) {
 	const session_ctx_t* session = apac_ctx->user_session;
@@ -140,7 +140,7 @@ i32 session_unlock(apac_ctx_t* apac_ctx) {
 	rele = locker_deinit(apac_ctx);
 	
 	if (rele != 0)
-		echo_error(apac_ctx, "Problem when releasing the locker\n");
+		echo_error(apac_ctx, "Problems when releasing the locker\n");
 
 	return rele;
 }
@@ -180,7 +180,7 @@ i32 session_init(i32 argc, char* argv[], apac_ctx_t* apac_ctx) {
 		goto lock_failed;
 	}
 
-	echo_info(apac_ctx, "Session was initilized with all components\n");
+	echo_info(apac_ctx, "Core session was initialized with all components\n");
 
 	return 0;
 

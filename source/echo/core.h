@@ -23,7 +23,8 @@ i32 echo_init(apac_ctx_t* apac_ctx);
 i32 echo_deinit(apac_ctx_t* apac_ctx);
 
 i32 echo_do(apac_ctx_t* apac_ctx, echo_level_e msg_level, i32 code_line, const char* code_filename, 
-		const char* func_name, const char* format, ...);
+	const char* func_name, const char* format, ...) 
+	__attribute__((format (printf, 6, 7)));
 
 extern const char* assert_format;
 

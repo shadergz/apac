@@ -103,7 +103,7 @@ i32 locker_release(apac_ctx_t* apac_ctx) {
 	delete_file: __attribute__((cold));
 	
 	#define RUN_DIR_SZ 0x80
-	char* run_dir;;
+	char* run_dir;
 	char* locker_filepath = NULL;
 	run_getedir(&run_dir, 0x120);
 

@@ -79,7 +79,7 @@ static void thread_segv_handler(int signum, siginfo_t* info, void* context) {
 
 	#elif defined(__aarch64__)
 	
-	fputs("(aarch64)\033[0m\n", stderr);
+	echo_error(NULL, "(aarch64)\033[0m\n");
 	static const char* registers_name[] = {"X0", "X1", "X2", "X3"};
 
 	const register_t PC = prog_context->uc_mcontext.pc;
@@ -120,7 +120,7 @@ static void thread_segv_handler(int signum, siginfo_t* info, void* context) {
 void run_raisef(i32 rsig, const char* fmt, ...) {
 	echo_error(NULL, "Program was halted");
 	if (!fmt) {
-		puts("");
+		echo_error(NULL, "\n");
 		goto raise;
 	}
 	

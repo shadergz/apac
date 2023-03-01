@@ -44,11 +44,11 @@ static i32 back_load_ocl(apac_ctx_t* apac_ctx) {
 
 	load_now: __attribute__((hot));
 	const i32 ocl_ret = ocl_init(apac_ctx);
-	if (ocl_ret == 0) 
-		return 0;
+	if (ocl_ret != 0) {
 
-	fio_finish(core->ocl_shared);
-	apfree(core->ocl_shared);
+		fio_finish(core->ocl_shared);
+		apfree(core->ocl_shared);
+	}
 	return ocl_ret;
 }
 
