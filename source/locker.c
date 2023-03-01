@@ -1,7 +1,9 @@
+
 #include <stdio.h>
 #include <string.h>
 
 #include <memctrlext.h>
+#include <layer.h>
 
 #include <storage/tree.h>
 
@@ -84,18 +86,7 @@ i32 locker_acquire(apac_ctx_t* apac_ctx) {
 
 // This function should be called when some signals like SISEGV has spawned!
 i32 locker_release(apac_ctx_t* apac_ctx) {
-	if (__builtin_expect(apac_ctx == NULL, 0)) {
-		#define RUN_DIR_SZ 0x80
-		char run[RUN_DIR_SZ];
-		char locker_filepath[RUN_DIR_SZ + 0x20];
-		run_getedir((char**)&run, sizeof run - 1);
-
-		snprintf(locker_filepath, sizeof locker_filepath, 
-			"%s/lock.alock", run);
-
-		remove(locker_filepath);
-		echo_info(NULL, "Locker file %s was removed\n", locker_filepath);
-	}
+	if (apac_ctx == NULL) goto delete_file;
 
 	storage_fio_t* driver = tree_getfile("./lock.alock", apac_ctx);
 	if (driver == NULL) {
@@ -108,5 +99,22 @@ i32 locker_release(apac_ctx_t* apac_ctx) {
 	fio_writef(driver, s_locker_format, -1, -1, -1);
 
 	return 0;
+
+	delete_file: __attribute__((cold));
+	
+	#define RUN_DIR_SZ 0x80
+	char* run_dir;;
+	char* locker_filepath = NULL;
+	run_getedir(&run_dir, 0x120);
+
+	layer_asprintf(&locker_filepath, "%s/lock.alock", run_dir);
+
+	remove(locker_filepath);
+	echo_info(NULL, "Locker file %s was removed\n", locker_filepath);
+
+	apfree(run_dir);
+	apfree(locker_filepath);
+
+	return -1;
 }
 

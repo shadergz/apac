@@ -75,6 +75,8 @@ i32 sched_init(apac_ctx_t* apac_ctx) {
 }
 
 schedthread_t* sched_find(u32 thread, apac_ctx_t* apac_ctx) {
+	if (apac_ctx == NULL) return NULL;
+
 	const schedgov_t* gov = apac_ctx->governor;
 
 	if (thread == 0)

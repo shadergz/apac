@@ -15,7 +15,7 @@ u64 explicit_align(u64 nsize, u64 alignment) {
 }
 
 #if MALLOC_DEBUG
-static inline __attribute__((always_inline)) void mem_report(u64 block_size, 
+static inline __attribute__((always_inline)) void memctrl_report(u64 block_size, 
 		void* new, const char* wrapper_name) {
 	
 	echo_debug(NULL, "New memory block of size %#04lu allocated at %#p, "
@@ -36,7 +36,7 @@ void* apcalloc(u64 nele, u64 esize) {
 	
 	void* new = calloc(nele, esize);
 	#if MALLOC_DEBUG
-	mem_report(nele * esize, new, "apcalloc");
+	memctrl_report(nele * esize, new, "apcalloc");
 	#endif
 
 	return new;
@@ -56,7 +56,7 @@ void* apmalloc(u64 rsize) {
 
 	void* nptr = malloc(rsize);
 	#if MALLOC_DEBUG
-	mem_report(rsize, nptr, "apmalloc");
+	memctrl_report(rsize, nptr, "apmalloc");
 	#endif
 
 	return nptr;

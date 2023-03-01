@@ -110,19 +110,24 @@ typedef struct user_options {
 	bool dsp_banner;
 	bool enb_log_system;
 
+	i32 echo_level;
+	bool enb_colors;
+
 } __attribute__((aligned(4))) user_options_t;
 
 typedef struct echo_ctx {
-	void (*event_announce)(const char* message, const char* thread_message);
+	i32 (*event_announce)(void* apac_ctx, i32 level, const char* message, 
+		const char* thread_message);
 	
 	_Atomic u64 dispatch_count;
+	_Atomic u64 cnt_dft;
 	#if defined(APAC_IS_UNDER_DEBUG)
 	#endif
 	
 } echo_ctx_t;
 
 typedef struct session_ctx {
-	i32 (*printf_here)(const char* fmt, ...);
+	user_options_t* user_options;
 
 } session_ctx_t;
 
@@ -156,8 +161,6 @@ typedef struct lockerproc {
 } lockerproc_t;
 
 typedef struct apac_ctx {
-	user_options_t* user_options;
-	
 	session_ctx_t* user_session;
 	
 	echo_ctx_t* echo_system;

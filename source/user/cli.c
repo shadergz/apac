@@ -1,3 +1,4 @@
+#include <signal.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <string.h>
@@ -8,6 +9,8 @@
 #include <user/cli.h>
 #include <rt.h>
 #include <layer.h>
+
+#include <echo/fmt.h>
 
 enum cli_arg_type {
 	CLI_ARG_NONE,
@@ -35,12 +38,15 @@ struct cli_option {
 };
 
 i32 user_cli_init(apac_ctx_t* apac_ctx) {
-	user_options_t* user = apac_ctx->user_options;
+	user_options_t* user = apac_ctx->user_session->user_options;
 	
 	user->dsp_help = false;
 	user->dsp_banner = true;
 
 	user->enb_log_system = true;
+
+	user->echo_level = 0;
+	user->enb_colors = false;
 
 	return 0;
 }
@@ -60,16 +66,17 @@ static bool cli_fmt_switcher(const char* switvalue) {
 	return strncasecmp(switvalue, cli_switcher_enb, sizeof cli_switcher_enb) == 0;
 }
 
-static void cli_clash(const apac_ctx_t* apac_ctx, const char* fmt, ...) 
+static void cli_clash(apac_ctx_t* apac_ctx, const char* fmt, ...) 
 	__attribute__((noreturn));
 
-static void cli_clash(const apac_ctx_t* apac_ctx, const char* fmt, ...) {
+static void cli_clash(apac_ctx_t* apac_ctx, const char* fmt, ...) {
 	const session_ctx_t* session = apac_ctx->user_session;
 
 	va_list args;
 	va_start(args, fmt);
 
-	if (session->printf_here == NULL) run_raise(SIGINT);
+	if (session == NULL) run_raise(SIGINT);
+	if (session->user_options == NULL) run_raise(SIGINT);
 	
 	char* cli_msg = NULL;
 	
@@ -78,7 +85,7 @@ static void cli_clash(const apac_ctx_t* apac_ctx, const char* fmt, ...) {
 	va_end(args);
 
 	if (cli_msg != NULL) {
-		session->printf_here("cli: %s", cli_msg);
+		echo_error(apac_ctx, "CLI: %s", cli_msg);
 		apfree(cli_msg);
 	}
 	run_raisef(SIGINT, "was clashed in CLI processing!");
@@ -86,7 +93,7 @@ static void cli_clash(const apac_ctx_t* apac_ctx, const char* fmt, ...) {
 
 static i32 cli_get(const char** prog_name, i32 argc, char* argv[], 
 		struct cli_option* opts, const struct cli_option** save_arg,
-		const apac_ctx_t* apac_ctx)
+		apac_ctx_t* apac_ctx)
 {
 	if (save_arg) *save_arg = NULL;
 	if (argc <= 1 || argv[argc] != NULL) return -1;
@@ -151,7 +158,7 @@ static struct cli_option s_default_cli_args[] = {
 };
 
 i32 user_cli_parser(i32 argc, char* argv[], apac_ctx_t* apac_ctx) {
-	user_options_t* user_conf = apac_ctx->user_options;
+	user_options_t* user_conf = apac_ctx->user_session->user_options;
 
 	i32 c;
 	const struct cli_option* user_opt;

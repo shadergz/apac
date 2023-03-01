@@ -14,6 +14,8 @@
 
 #include <dyn_loader.h>
 
+#include <echo/fmt.h>
+
 void run_raise(i32 rsig) {
 	raise(rsig);
 	__builtin_unreachable();
@@ -37,16 +39,23 @@ static i32 rt_dump(u64 idx, bool valid_trace, void* user_data, const char* forma
 	va_list va;
 	va_start(va, format);
 
+	#define RT_BUFFER_SZ 0x100
+	char rt_buffer[RT_BUFFER_SZ];
+	i32 ret = 0;
+
 	if (valid_trace == false && idx == 0) {
-		const i32 ret = vfprintf(stderr, "\tBacktrace: from %s module, "
-				"loaded at %#llx\n", va);
-		return ret;
+		ret = vsnprintf(rt_buffer, sizeof rt_buffer, 
+			"\tBacktrace: from %s module, loaded at %#llx\n", va);
+		goto rt_end;
 	}
 
-	const i32 ret_va = vfprintf(stderr, format, va);
+	ret = vsnprintf(rt_buffer, sizeof rt_buffer, format, va);
+
+	rt_end:
+	echo_error(NULL, "%s", rt_buffer);
 
 	va_end(va);
-	return ret_va;
+	return ret;
 }
 
 static void thread_segv_handler(int signum, siginfo_t* info, void* context) {
@@ -54,10 +63,10 @@ static void thread_segv_handler(int signum, siginfo_t* info, void* context) {
 	const ucontext_t* prog_context = (ucontext_t*)context;
 	typedef long long unsigned int register_t;
 
-	fprintf(stderr, "\033[0;31mReceived SIGSEGV signal ");
+	echo_error(NULL, "\033[0;31mReceived SIGSEGV signal ");
 	
 	#if defined(__x86_64__)
-	fputs("(x86_64)\033[0m\n", stderr);
+	echo_error(NULL, "(x86_64)\033[0m\n");
 
 	static const char* registers_name[] = {
 		"RAX", "RBX", "RCX", "RDX", 
@@ -82,18 +91,18 @@ static void thread_segv_handler(int signum, siginfo_t* info, void* context) {
 	
 	const char* possible = dyn_getsymbolname((void*)PC, &retr);
 	if (possible != NULL) {
-		fprintf(stderr, "May the function *%s* as caused this error!\n", possible);
+		echo_error(NULL, "May the function *%s* as caused this error!\n", possible);
 	}	
 	
-	fprintf(stderr, "\033[0;32mRegister states:\033[0m\n");
+	echo_error(NULL, "\033[0;32mRegister states:\033[0m\n");
 	for (u8 reg_index = 0; reg_index < sizeof(registers_name)/sizeof(const char*); reg_index++) {
-		fprintf(stderr, "\033[0;38m%s = \033[0;32m%016llx\033[0m\n", registers_name[reg_index],
+		echo_error(NULL, "\033[0;38m%s = \033[0;32m%016llx\033[0m\n", registers_name[reg_index],
 			readable_regs[reg_index]);
 	}
 
-	fprintf(stderr, "\033[0;35mProgram Counter = \033[0;37m%016llx\033[0m\n", PC);
+	echo_error(NULL, "\033[0;35mProgram Counter = \033[0;37m%016llx\033[0m\n", PC);
 
-	fprintf(stderr, "\033[0;33mStack trace:\033[0m\n");
+	echo_error(NULL, "\033[0;33mStack trace:\033[0m\n");
 
 	#define BACK_MAX_LEVEL 5
 
@@ -109,18 +118,23 @@ static void thread_segv_handler(int signum, siginfo_t* info, void* context) {
 }
 
 void run_raisef(i32 rsig, const char* fmt, ...) {
-	fprintf(stderr, "Program was halted");
+	echo_error(NULL, "Program was halted");
 	if (!fmt) {
 		puts("");
 		goto raise;
 	}
 	
-	fprintf(stderr, " because : ");
+	echo_error(NULL, " because : ");
 	va_list rargs;
 	va_start(rargs, fmt);
 
-	vfprintf(stderr, fmt, rargs);
+	#define RAISE_BF_SIZE 0x4f
+	char raise_bf[RAISE_BF_SIZE];
+
+	vsnprintf(raise_bf, sizeof raise_bf, fmt, rargs);
 	va_end(rargs);
+
+	echo_error(NULL, "%s", raise_bf);
 
 	raise:
 	raise(rsig);
@@ -132,8 +146,9 @@ i32 run_getedir(char** save_path, u64 req_sz) {
 	char* read_path = NULL;
 	layer_asprintf(&read_path, "/proc/%d/exe", getpid());
 
+	if (save_path == NULL) return -1;
 	if (read_path == NULL || *save_path != NULL) return -1;
-	*save_path = apmalloc(req_sz);
+	*save_path = (char*)apmalloc(req_sz);
 
 	if (*save_path == NULL) {
 		apfree(read_path);

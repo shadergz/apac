@@ -28,7 +28,10 @@ doublydie_t* droubly_move(doublydie_t* here, doublydie_t* from) {
 		return NULL;
 	}
 
-	here->cursor = from->cursor;
+	if (from->cursor != from)
+		here->cursor = from->cursor;
+	else here->cursor = here;
+
 	here->next = from->next;
 	here->prev = from->prev;
 
