@@ -124,7 +124,7 @@ i32 ocl_getdeviceids(apac_ctx_t* apac_ctx, cl_platform_id platform,
 	const cl_int err = ocl_ptr->clGetDeviceIDs(platform, device_type, 
 			num_entries, devices, num_devices);
 	if (err != CL_SUCCESS) {
-		echo_error(apac_ctx, "clGetDeviceIds was failed because: %s\n", 
+		echo_error(apac_ctx, "clGetDeviceIDs was failed because: %s\n", 
 				ocl_native_strerr(err));
 		return -1;
 	}

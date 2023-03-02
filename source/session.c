@@ -31,7 +31,7 @@ static i32 dsp_help(apac_ctx_t* apac_ctx) {
 }
 
 static const char s_apac_version[] = "0.1.4";
-static const char s_apac_rev[] = "a1";
+static const char s_apac_rev[] = "a2";
 
 static i32 dsp_banner(apac_ctx_t* apac_ctx) {
 	const session_ctx_t* session = apac_ctx->user_session;
@@ -50,13 +50,13 @@ static i32 enable_logsystem(apac_ctx_t* apac_ctx) {
 	const user_options_t* user   = session->user_options;
 	
 	if (user->enb_log_system == false) {
-		echo_success(apac_ctx, "`echo` log system was been disabled for this session!\n");
+		echo_success(apac_ctx, "echo log system was been disabled for this session!\n");
 		return -1;
 	}
 
 	const i32 ret = echo_init(apac_ctx);
 	if (ret != 0) {
-		echo_error(apac_ctx, "Can't starts *echo* log system, this is dangerous!\n");
+		echo_error(apac_ctx, "Can't starts echo log system, this is dangerous!\n");
 		return ret;
 	}
 
@@ -92,8 +92,8 @@ static i32 session_cpu_controller(apac_ctx_t* apac_ctx) {
 
 	const i32 sched = sched_init(apac_ctx);
 	if (sched != 0) {
-		echo_error(apac_ctx, "Can't setups the process main thread name, "
-			"The scheduler was dieded!\n");
+		echo_error(apac_ctx, "Can't setup the process core thread name, "
+			"the scheduler wasn't activated!\n");
 		return sched;
 
 	}
@@ -105,7 +105,7 @@ i32 session_makestorage(apac_ctx_t* apac_ctx) {
 	char* exec_dir = NULL;
 	run_getedir(&exec_dir, DIRIO_MAXPATH_SZ);
 
-	echo_info(apac_ctx, "*apac* begin executed inside of %s\n", exec_dir);
+	echo_info(apac_ctx, "Binary apac being executed inside of %s\n", exec_dir);
 
 	const i32 tree_ret = tree_makeroot(".", apac_ctx);
 	// Now the directory is under control by our storage handler
@@ -130,7 +130,7 @@ i32 session_lock(apac_ctx_t* apac_ctx) {
 	lret = locker_acquire(apac_ctx);
 
 	if (lret != 0)
-		echo_error(apac_ctx, "Can't acquire the locker file, is't real problem\n");
+		echo_error(apac_ctx, "Can't acquire the locker file, it's a fatal problem\n");
 
 	return lret;
 }
