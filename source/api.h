@@ -64,7 +64,7 @@ typedef struct storage_dirio {
 
 	u64 buf_pos, buf_end, position;
 
-	#define DIR_INFO_SZ 1 << 6
+#define DIR_INFO_SZ 1 << 6
 
 	u8 dir_info[DIR_INFO_SZ];
 } storage_dirio_t;
@@ -81,9 +81,12 @@ typedef struct storage_fio {
 	bool is_link, is_locked;
 
 	// The size of a memory page `chunk/block` (4096 bytes)
-	#define FIO_DATA_CACHE_SZ 1 << 12
+#define FIO_DATA_CACHE_SZ 1 << 12
 
 	u8 rw_cache[FIO_DATA_CACHE_SZ];
+	u8* cache_cursor;
+	u64 cursor_offset;
+	u64 cache_block;
 
 } storage_fio_t;
 
@@ -121,8 +124,8 @@ typedef struct echo_ctx {
 	
 	_Atomic u64 dispatch_count;
 	_Atomic u64 cnt_dft;
-	#if defined(APAC_IS_UNDER_DEBUG)
-	#endif
+#if defined(APAC_IS_UNDER_DEBUG)
+#endif
 	
 } echo_ctx_t;
 

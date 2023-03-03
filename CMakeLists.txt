@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.21)
 
-project(apac LANGUAGES C VERSION 0.1.2)
+project(apac LANGUAGES C VERSION 0.1.4)
 
 set(CMAKE_C_STANDARD 23)
 set(CMAKE_C_STANDARD_REQUIRED ON)
@@ -34,7 +34,7 @@ target_compile_definitions(apac PRIVATE _GNU_SOURCE)
 
 if (CMAKE_C_COMPILER_ID STREQUAL Clang)
 	target_compile_options(apac PRIVATE $<$<CONFIG:Debug>:-gdwarf-4;-fsanitize=address>)
-    	if (LINUX)
+	if (LINUX)
 		target_link_options(apac PRIVATE $<$<CONFIG:Debug>:-lasan>)
 	endif()
 

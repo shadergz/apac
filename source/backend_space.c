@@ -5,6 +5,7 @@
 #include <ocl_hardware.h>
 #include <memctrlext.h>
 #include <tip.h>
+#include <layer.h>
 
 #include <storage/fio.h>
 #include <echo/fmt.h>
@@ -16,16 +17,18 @@ static i32 back_load_ocl(apac_ctx_t* apac_ctx) {
 	opencl_int_t* interface = core->ocl_interface;
 	interface->ocl_driver = NULL;
 
+	echo_success(apac_ctx, "Searching for a valid OpenCL driver on your system\n");
+
 	if (core->ocl_shared == NULL) return -1;
 
-	char ocl_pathname[0x100];
+	i32 bret = -1;
 
 	// Attempting to load an "OpenCL shared object" local reference
 	if (fio_open("libOpenCL.so", "ref", core->ocl_shared) == 0)   goto load_now;
 	if (fio_open("libOpenCL.so.1", "ref", core->ocl_shared) == 0) goto load_now;
 
-	if (fio_open("/usr/lib/x86_64-linux-gnu/libOpenCL.so.1", "ref", core->ocl_shared) == 0)
-		goto load_now;
+	if (fio_open("/usr/lib/x86_64-linux-gnu/libOpenCL.so.1", "ref", 
+				core->ocl_shared) == 0) goto load_now;
 
 	#if defined(__ANDROID__)
 	const char* ocl_system = "/system/vendor/lib64";
@@ -33,23 +36,34 @@ static i32 back_load_ocl(apac_ctx_t* apac_ctx) {
 	const char* ocl_system = "/usr/lib";
 	#endif
 
-	snprintf(ocl_pathname, sizeof ocl_pathname, "%s/libOpenCL.so", ocl_system);
+	char* ocl_pathname = NULL;
+	layer_asprintf(&ocl_pathname, "%s/libOpenCL.so", ocl_system);
 	if (fio_open(ocl_pathname, "ref", core->ocl_shared) == 0) goto load_now;
 
-	echo_error(apac_ctx, "Can't found a valid OpenCL driver on your system paths");
+	echo_error(apac_ctx, "Can't found a valid OpenCL driver on your "
+			"system paths\n");
 	tip_ocl_driver("OCL_NOT_FOUND");
 
 	/* Can't found a valid OpenCL reference! */
-	return -1;
+	goto backret;
 
-	load_now: __attribute__((hot));
-	const i32 ocl_ret = ocl_init(apac_ctx);
-	if (ocl_ret != 0) {
+load_now: __attribute__((hot));
+	
+	echo_info(apac_ctx, "There's a OpenCL driver located at %s, "
+			"trying to load it!\n", fio_getpath(core->ocl_shared));
+	
+	bret = ocl_init(apac_ctx);
+	if (bret != 0) {
 
+		echo_error(apac_ctx, "Can't load the OpenCL driver %s\n",
+				fio_getpath(core->ocl_shared));
 		fio_finish(core->ocl_shared);
 		apfree(core->ocl_shared);
 	}
-	return ocl_ret;
+
+backret:
+	if (ocl_pathname) apfree(ocl_pathname);
+	return bret;
 }
 
 static i32 back_unload_ocl(apac_ctx_t* apac_ctx) {

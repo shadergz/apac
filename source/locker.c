@@ -35,7 +35,7 @@ i32 locker_deinit(apac_ctx_t* apac_ctx) {
 	storage_fio_t* proc_file = tree_close_file(&was_closed, "./lock.alock", apac_ctx);
 
 	if (was_closed != true) {
-		echo_error(apac_ctx, "Lock file wasn't closed");
+		echo_error(apac_ctx, "Lock file wasn't closed\n");
 		return -1;
 	}
 
@@ -54,7 +54,8 @@ i32 locker_acquire(apac_ctx_t* apac_ctx) {
 
 	storage_fio_t* driver = tree_getfile("./lock.alock", apac_ctx);
 	if (!driver) {
-		echo_error(apac_ctx, "Can't locate the locker process file inside the tree\n");
+		echo_error(apac_ctx, "Can't locate the locker process file inside "
+				"the tree\n");
 		return -1;
 	}
 
@@ -103,9 +104,9 @@ i32 locker_release(apac_ctx_t* apac_ctx) {
 	delete_file: __attribute__((cold));
 	
 	#define RUN_DIR_SZ 0x80
-	char* run_dir;
+	char* run_dir = NULL;
 	char* locker_filepath = NULL;
-	run_getedir(&run_dir, 0x120);
+	run_getedir(&run_dir, RUN_DIR_SZ);
 
 	layer_asprintf(&locker_filepath, "%s/lock.alock", run_dir);
 

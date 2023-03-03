@@ -61,6 +61,9 @@ i32 fio_open(const char* path, const char* perm, storage_fio_t* file) {
 
 	if (file->file_fd < 3) goto ferror;
 
+	file->cache_cursor = file->rw_cache;
+	file->cursor_offset = file->cache_block = 0;
+
 	return 0;
 
 	ferror:
@@ -68,26 +71,62 @@ i32 fio_open(const char* path, const char* perm, storage_fio_t* file) {
 	return -1;
 }
 
+#define FIO_MIN(x, y) ((x > y ? y : x))
+
+static inline bool fio_insideblock(const storage_fio_t* file) {
+	if (file->cursor_offset < 4096 && file->cache_cursor == 0) 
+		return true;
+
+	return false;
+}
+
 const u64 fio_write(storage_fio_t* file, const void* data, u64 datas) {
 	if (file == NULL) return -1;
 
-	return write(file->file_fd, data, datas);
+	const u64 wb = write(file->file_fd, data, datas);
+	if (wb == -1) {
+		file->recerror = errno;
+		return -1;
+	}
+
+#if 0
+	memcpy(file->cache_cursor, data, 
+			FIO_MIN(file->rw_cache - file->cache_cursor, datas));
+
+	file->cursor_offset += datas;
+#endif
+
+	return wb;
 }
 
 const u64 fio_read(storage_fio_t* file, void* data, u64 datas) {
 	if (file == NULL) return -1;
 
-	const u64 rret = read(file->file_fd, data, datas);
+	u64 br = 0;
+#if 0
+	if (datas < (file->rw_cache - file->cache_cursor) && fio_insideblock(file)) {
+		memcpy(data, file->rw_cache, datas);
+		br = datas;
+		goto update_rc;
+	}
+#endif
 
-	if (rret != -1 || rret < SSIZE_MAX) return rret;
+	br = read(file->file_fd, data, datas);
 
-	echo_error(NULL, "Couldn't read from the file %s because of: %s\n",
-		fio_getpath(file), strerror(errno));
-	if (errno == EBADF)
-		echo_info(NULL, "May the FD %d is corrupted or not more valid\n",
-			file->file_fd);
+	if (__builtin_expect(br == -1 || br > SSIZE_MAX, 0)) {
 
-	return -1;
+		echo_error(NULL, "Couldn't read from the file %s because of: %s\n",
+			file->file_path, strerror(errno));
+		if (errno == EBADF)
+			echo_info(NULL, "May the FD %d from %s is corrupted or not "
+					"more valid\n", file->file_fd, file->file_path);
+		return br;
+	}
+//update_rc:
+	file->cursor_offset += datas;
+	file->cache_cursor += datas;
+
+	return br;
 }
 
 i32 fio_seekbuffer(storage_fio_t* fio, u64 offset, fio_seek_e seek_type) {
@@ -118,7 +157,8 @@ i32 fio_writef(storage_fio_t* file, const char* restrict format, ...) {
 
 	vsnprintf((char*)file->rw_cache, sizeof file->rw_cache, format, va);
 
-	const i32 fiow = (i32)fio_write(file, file->rw_cache, strlen((const char*)file->rw_cache));
+	const i32 fiow = (i32)fio_write(file, file->rw_cache, 
+			strlen((const char*)file->rw_cache));
 
 	va_end(va);
 
@@ -127,7 +167,8 @@ i32 fio_writef(storage_fio_t* file, const char* restrict format, ...) {
 
 i32 fio_finish(storage_fio_t* file) {
 	if (file->is_locked) {
-		echo_info(NULL, "Unlocking the file with filename %s\n", file->file_name);
+		echo_info(NULL, "Unlocking the file fd %d with filename %s\n", 
+				file->file_fd, file->file_name);
 		fio_unlock(file);
 	}
 

@@ -32,7 +32,7 @@ static i32 apac_san(apac_ctx_t* apac_ctx) {
 
 	return 0;
 
-	nonallocated:
+nonallocated:
 	echo_error(apac_ctx, "%s wasn't allocated, this is a non irrecuperable status", 
 		symbol_name);
 	return -1;
@@ -83,13 +83,13 @@ i32 main(i32 argc, char** argv) {
 	apac_ctx_t* apac_main = (apac_ctx_t*)apmalloc(sizeof(apac_ctx_t));
 
 	if (apac_main == NULL) {
-		echo_error(apac_main, "Can't allocate apac main object, "
-			"must be reported!\n");
+		echo_error(apac_main, "Can't allocate main context, "
+			"this must be reported!\n");
 	}
 
 	const i32 aret = apac_init(apac_main);
 	if (aret != 0) {
-		echo_error(apac_main, "Can't initialize apac main object!\n");
+		echo_error(apac_main, "Can't initialize apac main context!\n");
 		
 		apfree(apac_main);
 		return -1;
@@ -98,7 +98,6 @@ i32 main(i32 argc, char** argv) {
 	session_init(argc, argv, apac_main);
 	
 	echo_success(apac_main, "Hello World my nobre!\n");
-
 	session_deinit(apac_main);
 
 	apac_deinit(apac_main);

@@ -31,7 +31,7 @@ static i32 dsp_help(apac_ctx_t* apac_ctx) {
 }
 
 static const char s_apac_version[] = "0.1.4";
-static const char s_apac_rev[] = "a2";
+static const char s_apac_rev[] = "a3";
 
 static i32 dsp_banner(apac_ctx_t* apac_ctx) {
 	const session_ctx_t* session = apac_ctx->user_session;
@@ -39,8 +39,9 @@ static i32 dsp_banner(apac_ctx_t* apac_ctx) {
 	
 	if (user->dsp_banner == false) return -1;
 
-	const i32 print_res = echo_success(apac_ctx, "apac (version %s) rev.%s Copyright (C) 2023 the "
-		"Apac's developers\n", s_apac_version, s_apac_rev);
+	const i32 print_res = echo_success(apac_ctx, "apac (version %s) rev.%s "
+			"Copyright (C) 2023 the apac's developers\n", 
+			s_apac_version, s_apac_rev);
 
 	return print_res;
 }
@@ -50,13 +51,15 @@ static i32 enable_logsystem(apac_ctx_t* apac_ctx) {
 	const user_options_t* user   = session->user_options;
 	
 	if (user->enb_log_system == false) {
-		echo_success(apac_ctx, "echo log system was been disabled for this session!\n");
+		echo_success(apac_ctx, "echo log system was "
+				"been disabled for this session!\n");
 		return -1;
 	}
 
 	const i32 ret = echo_init(apac_ctx);
 	if (ret != 0) {
-		echo_error(apac_ctx, "Can't starts echo log system, this is dangerous!\n");
+		echo_error(apac_ctx, "Can't starts echo log system, "
+				"this is dangerous!\n");
 		return ret;
 	}
 
@@ -108,12 +111,16 @@ i32 session_makestorage(apac_ctx_t* apac_ctx) {
 	echo_info(apac_ctx, "Binary apac being executed inside of %s\n", exec_dir);
 
 	const i32 tree_ret = tree_makeroot(".", apac_ctx);
-	// Now the directory is under control by our storage handler
-	if (tree_ret != 0)
+	
+	if (tree_ret != 0) {
 		echo_error(apac_ctx, "Can't setup the tree's root storage node\n");
+	}
 
-	// exec_dir ins't more needed
+	// Now the directory is under control by our storage handler
+	
+	// Variable `exec_dir` isn't more needed
 	apfree(exec_dir);
+	
 	return tree_ret;
 }
 
@@ -130,7 +137,8 @@ i32 session_lock(apac_ctx_t* apac_ctx) {
 	lret = locker_acquire(apac_ctx);
 
 	if (lret != 0)
-		echo_error(apac_ctx, "Can't acquire the locker file, it's a fatal problem\n");
+		echo_error(apac_ctx, "Can't acquire the locker file, "
+				"it's a fatal problem\n");
 
 	return lret;
 }
@@ -184,19 +192,19 @@ i32 session_init(i32 argc, char* argv[], apac_ctx_t* apac_ctx) {
 
 	return 0;
 
-	lock_failed:
+lock_failed:
 	session_unlock(apac_ctx);
 
-	back_failed:
+back_failed:
 	tree_close(apac_ctx->root, true);
 
-	storage_failed:
+storage_failed:
 	sched_deinit(apac_ctx);
 
-	cpuc_failed:
+cpuc_failed:
 	user_cli_deinit(apac_ctx);
 
-	ss_failed:
+ss_failed:
 	return -1;
 }
 

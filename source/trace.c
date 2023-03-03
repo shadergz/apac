@@ -24,7 +24,7 @@ static _Unwind_Reason_Code un_store_holder(struct _Unwind_Context* context, void
 
 	*frame->curr_state++ = (void*)program_counter;
 
-	fish_next:
+fish_next:
 	return _URC_NO_REASON;
 }
 
@@ -36,15 +36,15 @@ static _Unwind_Reason_Code un_store_holder(struct _Unwind_Context* context, void
 
 u64 trace_capture(void* save_frame[], u64 req_frame) {
 	u64 back_ret;
-	#if defined(__ANDROID__)
+#if defined(__ANDROID__)
 	struct traceback_state frame_state = {save_frame, save_frame + (req_frame - 1)};
 	_Unwind_Backtrace(un_store_holder, &frame_state);
 
 	back_ret = frame_state.end_ptr - frame_state.curr_state;
-	#else
+#else
 	back_ret = backtrace(save_frame, req_frame);
 
-	#endif
+#endif
 	if (back_ret != req_frame) return 0;
 
 	return back_ret;
@@ -55,7 +55,7 @@ u64 trace_dump(void* captured_frame[], void* user, traceprint_t print_trace, u64
 	if (dsp_count == -1 || print_trace == NULL) 
 		return 0;
 	
-	#define MAX_TRACE_MSG_SZ 0x45
+#define MAX_TRACE_MSG_SZ 0x45
 	char format_trace[MAX_TRACE_MSG_SZ];
 	
 	u64 frame_idx; 
