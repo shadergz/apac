@@ -19,7 +19,10 @@ target_sources(apac PRIVATE
 
 	storage/dirio.c
 	storage/fio.c
-	storage/flock.c
+	
+	storage/extio/flock.c
+	storage/extio/stream_mime.c
+
 	storage/tree.c
 	storage/io_native.c
 

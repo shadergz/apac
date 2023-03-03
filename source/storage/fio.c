@@ -9,7 +9,7 @@
 #include <sys/stat.h>
 
 #include <storage/fio.h>
-#include <storage/flock.h>
+#include <storage/extio/flock.h>
 
 #include <memctrlext.h>
 #include <echo/fmt.h>

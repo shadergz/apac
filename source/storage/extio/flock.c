@@ -4,7 +4,7 @@
 #include <errno.h>
 #include <string.h>
 
-#include <storage/flock.h>
+#include <storage/extio/flock.h>
 
 i32 fio_unlock(storage_fio_t* file) {
         if (file == NULL) return -1;

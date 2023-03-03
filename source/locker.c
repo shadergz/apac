@@ -8,7 +8,7 @@
 #include <storage/tree.h>
 
 #include <storage/fio.h>
-#include <storage/flock.h>
+#include <storage/extio/flock.h>
 
 #include <locker.h>
 

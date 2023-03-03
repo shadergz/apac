@@ -14,6 +14,18 @@ typedef uint16_t u16;
 typedef uint32_t u32;
 typedef uint64_t u64;
 
+typedef struct stream_mime {
+	// https://en.wikipedia.org/wiki/Media_type
+	// mime-type = type "/" [tree "."] subtype ["+" suffix]* [";" parameter];
+	const char* type;
+	const char* tree;
+	const char* subtype;
+	const char* suffix;
+	const char* parameter;
+
+} stream_mime_t;
+
+
 typedef struct vecdie {
 	void* vec_dynamic;
 	u64 vec_capa;
