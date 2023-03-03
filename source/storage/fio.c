@@ -10,6 +10,7 @@
 
 #include <storage/fio.h>
 #include <storage/extio/flock.h>
+#include <storage/extio/stream_mime.h>
 
 #include <memctrlext.h>
 #include <echo/fmt.h>
@@ -20,6 +21,23 @@
 #define FIO_IS_REFERENCE(perm) (strncasecmp(perm, "ref", 3) == 0)
 
 typedef struct stat native_stat_t;
+
+static i32 fio_check(const native_stat_t* stat_buffer, storage_fio_t* file)
+{	
+	if (!(!S_ISREG(stat_buffer->st_mode) && 
+		S_ISLNK(stat_buffer->st_mode))) return -1;
+
+#define REAL_FILENAME_SZ 0x32
+	char real_fn[REAL_FILENAME_SZ];
+
+	const i32 ret = readlink(fio_getpath(file), real_fn, sizeof real_fn - 1);
+	if (ret == -1) return ret;
+
+	file->real_filename = strdup(real_fn);
+	file->is_link = true;
+
+	return 0;
+}
 
 i32 fio_open(const char* path, const char* perm, storage_fio_t* file) {	
 	memset(file, 0, sizeof(*file));
@@ -37,17 +55,7 @@ i32 fio_open(const char* path, const char* perm, storage_fio_t* file) {
 		// In case that we can't create a new file, go out!
 		goto ferror;
 
-	if (!S_ISREG(stat_buffer->st_mode) && S_ISLNK(stat_buffer->st_mode)) {
-		#define REAL_FILENAME_SZ 0x32
-		char real_fn[REAL_FILENAME_SZ];
-
-		const i32 ret = readlink(path, real_fn, sizeof real_fn - 1);
-		if (ret == -1) goto ferror;
-
-		file->real_filename = strdup(real_fn);
-
-		file->is_link = true;
-	}
+	if (fio_check(stat_buffer, file) != 0) goto ferror;
 
 	file->file_path = strdup(path);
 	const char* relobs = strrchr(file->file_path, '/');
@@ -55,18 +63,19 @@ i32 fio_open(const char* path, const char* perm, storage_fio_t* file) {
 	if (relobs)
 		file->file_name = strdup(relobs + 1);
 
-
 	if (__builtin_expect(FIO_IS_REFERENCE(perm), 0)) return 0;
 	file->file_fd = open(path, flags, perms);
 
 	if (file->file_fd < 3) goto ferror;
 
+	file->mime_identifier = mime_fromfile(file);
+	
 	file->cache_cursor = file->rw_cache;
 	file->cursor_offset = file->cache_block = 0;
 
 	return 0;
 
-	ferror:
+ferror:
 	file->recerror = errno;
 	return -1;
 }
@@ -88,14 +97,10 @@ const u64 fio_write(storage_fio_t* file, const void* data, u64 datas) {
 		file->recerror = errno;
 		return -1;
 	}
-
-#if 0
 	memcpy(file->cache_cursor, data, 
 			FIO_MIN(file->rw_cache - file->cache_cursor, datas));
 
 	file->cursor_offset += datas;
-#endif
-
 	return wb;
 }
 
@@ -103,13 +108,11 @@ const u64 fio_read(storage_fio_t* file, void* data, u64 datas) {
 	if (file == NULL) return -1;
 
 	u64 br = 0;
-#if 0
 	if (datas < (file->rw_cache - file->cache_cursor) && fio_insideblock(file)) {
 		memcpy(data, file->rw_cache, datas);
 		br = datas;
 		goto update_rc;
 	}
-#endif
 
 	br = read(file->file_fd, data, datas);
 
@@ -122,7 +125,7 @@ const u64 fio_read(storage_fio_t* file, void* data, u64 datas) {
 					"more valid\n", file->file_fd, file->file_path);
 		return br;
 	}
-//update_rc:
+update_rc:
 	file->cursor_offset += datas;
 	file->cache_cursor += datas;
 

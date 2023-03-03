@@ -86,7 +86,8 @@ typedef struct storage_fio {
 	const char* file_name;
 	const char* real_filename;
 	const char* file_rel;
-
+	
+	const stream_mime_t* mime_identifier;
 	i32 file_fd;
 	i32 recerror;
 
