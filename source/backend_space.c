@@ -50,13 +50,13 @@ static i32 back_load_ocl(apac_ctx_t* apac_ctx) {
 load_now: __attribute__((hot));
 	
 	echo_info(apac_ctx, "There's a OpenCL driver located at %s, "
-			"trying to load it!\n", fio_getpath(core->ocl_shared));
+			"trying to load it!\n", core->ocl_shared->file_name);
 	
 	bret = ocl_init(apac_ctx);
 	if (bret != 0) {
 
 		echo_error(apac_ctx, "Can't load the OpenCL driver %s\n",
-				fio_getpath(core->ocl_shared));
+			core->ocl_shared->file_name);
 		fio_finish(core->ocl_shared);
 		apfree(core->ocl_shared);
 	}

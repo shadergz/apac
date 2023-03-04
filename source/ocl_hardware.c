@@ -20,7 +20,7 @@ i32 ocl_init(apac_ctx_t* apac_ctx) {
 	backend_ctx_t* be_context = apac_ctx->core_backend;
 	opencl_int_t* ocl_int = be_context->ocl_interface;
 	
-	ocl_int->ocl_driver = dyn_loadbyname(fio_getpath(be_context->ocl_shared)); 
+	ocl_int->ocl_driver = dyn_loadbyname(((storage_fio_t*)be_context->ocl_shared)->file_path); 
 	
 	if (ocl_int == NULL) {
 		echo_error(apac_ctx, "OCL: interface can't be null for " 

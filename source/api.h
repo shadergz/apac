@@ -100,6 +100,7 @@ typedef struct storage_fio {
 	u8* cache_cursor;
 	u64 cursor_offset;
 	u64 cache_block;
+	u64 cache_valid;
 
 } storage_fio_t;
 

@@ -50,11 +50,11 @@ mime_ret:
 const stream_mime_t* mime_fromfile(storage_fio_t* file) {
 
 	u32 points = 0;
-	const char* file_pathname = fio_getpath(file);
+	const char* file_pathname = file->file_path;
 	if (file_pathname == NULL) return NULL;
 
 	const char* file_path = strdup(file_pathname);
-	const stream_mime_t* mime = NULL;
+	const stream_mime_t* mime = &g_mime_list[STREAM_MIME_IDX_UNKNOWN];
 
 	const char* ext = strrchr(file_path, '.');
 	if (ext == NULL) 
@@ -85,7 +85,7 @@ checks_magic: __attribute__((hot));
 	switch (points) {
 	case 20: mime = &g_mime_list[STREAM_MIME_IDX_APPLE_IOS_PACKAGE]; break;
 	case 40: mime = &g_mime_list[STREAM_MIME_IDX_ANDROID_PACKAGE];   break;
-	default: mime = &g_mime_list[STREAM_MIME_IDX_UNKNOWN];
+	default: mime = &g_mime_list[STREAM_MIME_IDX_PLAIN_TEXT];
 	}
 
 	fio_seekbuffer(file, 0, FIO_SEEK_SET);

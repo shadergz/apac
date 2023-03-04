@@ -64,7 +64,11 @@ i32 locker_acquire(apac_ctx_t* apac_ctx) {
 	i32 st = 0, pid = 0, time = 0;
 
 	fio_seekbuffer(driver, 0, FIO_SEEK_SET);
-	fio_readf(driver, s_locker_format, &st, &pid, &time);
+	
+	#define LOCKER_RWB_SZ 0x40
+	char lbuffer[LOCKER_RWB_SZ] = {};
+	fio_snreadf(lbuffer, sizeof lbuffer, driver, 
+		s_locker_format, &st, &pid, &time);
 
 	if (has_locked) {
 		while (fio_lock(driver, FIO_LOCKER_WRITE) != 0) {
@@ -77,8 +81,8 @@ i32 locker_acquire(apac_ctx_t* apac_ctx) {
 	lockerproc_t* locker = apac_ctx->locker;
 
 	fio_seekbuffer(driver, 0, FIO_SEEK_SET);
-	fio_writef(driver, s_locker_format, locker->saved_st, 
-		locker->locker_pid, locker->time);
+	fio_snwritef(lbuffer, sizeof(lbuffer), driver, s_locker_format, 
+		locker->saved_st, locker->locker_pid, locker->time);
 
 	echo_info(apac_ctx, "Locker acquired by PID: %d\n", locker->locker_pid);
 
@@ -96,8 +100,11 @@ i32 locker_release(apac_ctx_t* apac_ctx) {
 
 	}
 
+	char readback[LOCKER_RWB_SZ];
+
 	fio_seekbuffer(driver, 0, FIO_SEEK_SET);
-	fio_writef(driver, s_locker_format, -1, -1, -1);
+	fio_snwritef(readback, sizeof(readback), driver, 
+		s_locker_format, -1, -1, -1);
 
 	return 0;
 
