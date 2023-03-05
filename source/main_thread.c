@@ -5,8 +5,11 @@
 #include <api.h>
 #include <memctrlext.h>
 #include <session.h>
+
 #include <rt.h>
 #include <echo/fmt.h>
+
+#include <pool/gov.h>
 
 #define WRAPPER_TYPE_TO_STR(type) #type
 #define TYPE_2_STR(type)\
@@ -94,6 +97,13 @@ i32 main(i32 argc, char** argv) {
 		apfree(apac_main);
 		return -1;
 	}
+	
+	const i32 sched = sched_init(apac_main);
+	if (sched != 0) {
+		echo_error(apac_main, "Can't setup the main core thread name, "
+			"the scheduler wasn't activated!\n");
+		return sched;
+	}
 
 	const i32 sinit = session_init(argc, argv, apac_main);
 	if (sinit != 0) {
@@ -105,6 +115,7 @@ i32 main(i32 argc, char** argv) {
 	session_deinit(apac_main);
 
 going_out:
+	sched_deinit(apac_main);
 	apac_deinit(apac_main);
 
 	apfree(apac_main);

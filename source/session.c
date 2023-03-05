@@ -16,7 +16,6 @@
 #include <backend_space.h>
 #include <echo/fmt.h>
 
-#include <pool/gov.h>
 
 static i32 dsp_help(apac_ctx_t* apac_ctx) {
 
@@ -90,20 +89,6 @@ static i32 session_cli(i32 argc, char* argv[], apac_ctx_t* apac_ctx) {
 	return 0;
 }
 
-static i32 session_cpu_controller(apac_ctx_t* apac_ctx) {
-	if (apac_ctx == NULL) return -1;
-
-	const i32 sched = sched_init(apac_ctx);
-	if (sched != 0) {
-		echo_error(apac_ctx, "Can't setup the main core thread name, "
-			"the scheduler wasn't activated!\n");
-		return sched;
-
-	}
-
-	return 0;
-}
-
 i32 session_makestorage(apac_ctx_t* apac_ctx) {
 	char* exec_dir = NULL;
 	run_getedir(&exec_dir, DIRIO_MAXPATH_SZ);
@@ -137,7 +122,7 @@ i32 session_lock(apac_ctx_t* apac_ctx) {
 	lret = locker_acquire(apac_ctx);
 
 	if (lret != 0) {
-		echo_error(apac_ctx, "Can't acquire the locker file, "
+		echo_error(apac_ctx, "Can't acquire the locker from the process file, "
 				"it's a fatal problem\n");
 	}
 
@@ -148,9 +133,9 @@ i32 session_unlock(apac_ctx_t* apac_ctx) {
 	i32 rele = locker_release(apac_ctx);
 	rele = locker_deinit(apac_ctx);
 	
-	if (rele != 0)
+	if (rele != 0) {
 		echo_error(apac_ctx, "Problems when releasing the locker\n");
-
+	}
 	return rele;
 }
 
@@ -163,7 +148,6 @@ i32 session_init(i32 argc, char* argv[], apac_ctx_t* apac_ctx) {
 	}
 
 	if (session_cli(argc, argv, apac_ctx) != 0) goto ss_failed;
-	if (session_cpu_controller(apac_ctx) != 0)  goto cpuc_failed;
 	if (session_makestorage(apac_ctx) != 0)     goto storage_failed;
 
 	if (session_backend(apac_ctx) != 0)         goto back_failed;
@@ -181,9 +165,6 @@ back_failed:
 	tree_close(apac_ctx->root, true);
 
 storage_failed:
-	sched_deinit(apac_ctx);
-
-cpuc_failed:
 	user_cli_deinit(apac_ctx);
 
 ss_failed:
@@ -199,9 +180,6 @@ i32 session_deinit(apac_ctx_t* apac_ctx) {
 	if (user_opts->enb_log_system == true) {
 		echo_deinit(apac_ctx);
 	}
-
-	sched_deinit(apac_ctx);
-
 	session_unlock(apac_ctx);
 
 	user_cli_deinit(apac_ctx);

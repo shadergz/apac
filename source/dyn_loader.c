@@ -17,7 +17,7 @@ external_module_t dyn_loadbyname(const char* objfile) {
 	if (shared == NULL) {
 		const char* dlproblem = dlerror();
 		echo_error(NULL, "Can't load a shared object with "
-				"pathname: %s, because of %s\n", objfile, 
+				"pathname: %s, because of: %s\n", objfile, 
 				strhandler_skip(dlproblem, "apac\" "));
 		return NULL;
 	}
