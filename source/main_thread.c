@@ -5,11 +5,11 @@
 #include <api.h>
 #include <memctrlext.h>
 #include <session.h>
-
 #include <rt.h>
 #include <echo/fmt.h>
 
 #include <pool/gov.h>
+#include <inner.h>
 
 #define WRAPPER_TYPE_TO_STR(type) #type
 #define TYPE_2_STR(type)\
@@ -115,7 +115,8 @@ i32 main(i32 argc, char** argv) {
 		goto going_out;
 	}
 
-	echo_success(apac_main, "Hello World my nobre!\n");
+	const i32 apac_ret = inner_apacentry(apac_main);
+
 	session_deinit(apac_main);
 
 going_out:
@@ -123,6 +124,6 @@ going_out:
 	apac_deinit(apac_main);
 
 	apfree(apac_main);
-	return 0;
+	return apac_ret;
 }
 

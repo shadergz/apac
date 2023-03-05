@@ -1,13 +1,14 @@
+
+add_subdirectory(user)
+add_subdirectory(storage)
+
 target_sources(apac PRIVATE 
 	main_thread.c 
-
-	user/cli.c
-	user/line_format.c
-	user/cli_clash.c
 
 	strhandler.c
 	layer.c
 	rt.c
+	inner.c
 	session.c
 	trace.c
 	memctrlext.c
@@ -19,16 +20,6 @@ target_sources(apac PRIVATE
 	dyn_loader.c
 	tip.c
 	locker.c
-
-	storage/dirio.c
-	storage/fio.c
-	
-	storage/extio/flock.c
-	storage/extio/stream_mime.c
-	storage/extio/advise.c
-
-	storage/tree.c
-	storage/io_native.c
 
 	embed/user.c
 
