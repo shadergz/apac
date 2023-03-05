@@ -21,8 +21,6 @@ target_sources(apac PRIVATE
 	tip.c
 	locker.c
 
-	embed/user.c
-
 	pool/spin_lock.c
 	pool/sched_max.c
 	pool/sched_ctrl.c

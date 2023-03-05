@@ -4,7 +4,7 @@
 
 #include <session.h>
 #include <user/cli.h>
-#include <embed/user.h>
+#include <user/usage.h>
 
 #include <rt.h>
 #include <locker.h>
@@ -24,7 +24,7 @@ static i32 dsp_help(apac_ctx_t* apac_ctx) {
 
 	if (user->dsp_help == false) return -1;
 
-	const i32 result = echo_success(apac_ctx, "%s\n", g_embed_help_msg);
+	const i32 result = echo_success(apac_ctx, "%s\n", g_usagemsg);
 
 	return result;
 }
