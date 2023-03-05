@@ -34,5 +34,8 @@ target_sources(apac PRIVATE
 	pool/sched_max.c
 	pool/sched_ctrl.c
 	echo/int.c
+
+	thread/ctx_now.c
+	thread/sleep.c
 )
 

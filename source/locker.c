@@ -15,6 +15,7 @@
 
 #include <echo/fmt.h>
 #include <rt.h>
+#include <thread/sleep.h>
 
 i32 locker_init(apac_ctx_t* apac_ctx) {
 
@@ -76,7 +77,7 @@ i32 locker_acquire(apac_ctx_t* apac_ctx) {
 		while (fio_lock(driver, FIO_LOCKER_WRITE) != 0) {
 			echo_info(apac_ctx, "The locker file is activated on %d "
 				"process, waiting...\n", pid);
-
+		thread_sleepby(100, THREAD_SLEEPCONV_MILI); // Sleeping by 100ms
 		}
 	}
 	fio_lock(driver, FIO_LOCKER_WRITE);

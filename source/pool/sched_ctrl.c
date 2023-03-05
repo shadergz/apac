@@ -48,7 +48,10 @@ u8 sched_getcount(const apac_ctx_t* apac_ctx) {
 	const schedgov_t* gov = apac_ctx->governor;
 	if (gov == NULL)		  return 0;
 	if (gov->thread_info_vec == NULL) return 0;
-	return vec_using(gov->thread_info_vec);
+	
+	const u8 count = (u8)vec_using(gov->thread_info_vec);
+
+	return count;
 }
 
 i32 sched_init(apac_ctx_t* apac_ctx) {
