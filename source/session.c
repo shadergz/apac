@@ -162,32 +162,13 @@ i32 session_init(i32 argc, char* argv[], apac_ctx_t* apac_ctx) {
 		return -1;
 	}
 
-	if (session_cli(argc, argv, apac_ctx) != 0) {
-		echo_error(apac_ctx, "Session was failed to initialize the "
-			"CLI interface\n");
-		goto ss_failed;
-	}
+	if (session_cli(argc, argv, apac_ctx) != 0) goto ss_failed;
+	if (session_cpu_controller(apac_ctx) != 0)  goto cpuc_failed;
+	if (session_makestorage(apac_ctx) != 0)     goto storage_failed;
 
-	if (session_cpu_controller(apac_ctx) != 0) {
-		echo_error(apac_ctx, "CPU controller was failed to initialize\n");
-		goto cpuc_failed;
-	}
+	if (session_backend(apac_ctx) != 0)         goto back_failed;
 
-	if (session_makestorage(apac_ctx) != 0) {
-		echo_error(apac_ctx, "Storage wasn't be initialized correct\n");
-		goto storage_failed;
-	}
-
-
-	if (session_backend(apac_ctx) != 0) {
-		echo_error(apac_ctx, "Backend wasn't not be started\n");
-		goto back_failed;
-	}
-
-	if (session_lock(apac_ctx) != 0) {
-		echo_error(apac_ctx, "Lock locking stage was failed\n");
-		goto lock_failed;
-	}
+	if (session_lock(apac_ctx) != 0)            goto lock_failed;
 
 	echo_info(apac_ctx, "Core session was initialized with all components!\n");
 
