@@ -20,13 +20,14 @@ i32 ocl_init(apac_ctx_t* apac_ctx) {
 	backend_ctx_t* be_context = apac_ctx->core_backend;
 	opencl_int_t* ocl_int = be_context->ocl_interface;
 	
-	ocl_int->ocl_driver = dyn_loadbyname(((storage_fio_t*)be_context->ocl_shared)->file_path); 
-	
 	if (ocl_int == NULL) {
 		echo_error(apac_ctx, "OCL: interface can't be null for " 
 				"this operation\n");
 		return -1;
 	}
+
+	ocl_int->ocl_driver = dyn_loadbyname(((storage_fio_t*)be_context->ocl_shared)->file_path); 
+	if (!ocl_int->ocl_driver) return -1;
 
 	AP_LOAD_FUNC(apac_ctx, ocl_int, clGetDeviceIDs, 
 			OCL_GETDEVICEIDS_FUNC, OpenCL, -1);

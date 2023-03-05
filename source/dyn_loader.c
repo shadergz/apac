@@ -2,6 +2,7 @@
 #include <string.h>
 
 #include <dyn_loader.h>
+#include <strhandler.h>
 #include <echo/fmt.h>
 
 i32 dyn_getinfo(const void* addr, dyninfo_t* fill) {
@@ -14,8 +15,10 @@ external_module_t dyn_loadbyname(const char* objfile) {
 	void* shared = dlopen(objfile, RTLD_LAZY);
 
 	if (shared == NULL) {
+		const char* dlproblem = dlerror();
 		echo_error(NULL, "Can't load a shared object with "
-				"pathname: %s, because of %s\n", objfile, dlerror());
+				"pathname: %s, because of %s\n", objfile, 
+				strhandler_skip(dlproblem, "apac\" "));
 		return NULL;
 	}
 

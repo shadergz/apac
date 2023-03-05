@@ -3,6 +3,7 @@ target_sources(apac PRIVATE
 
 	user/cli.c
 
+	strhandler.c
 	layer.c
 	rt.c
 	session.c
