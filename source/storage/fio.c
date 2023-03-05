@@ -64,7 +64,7 @@ i32 fio_open(const char* path, const char* perm, storage_fio_t* file) {
 
 	file->file_path = strdup(path);
 	const char* relobs = strrchr(file->file_path, '/');
-	
+
 	if (relobs)
 		file->file_name = strdup(relobs + 1);
 	if (__builtin_expect(FIO_IS_REFERENCE(perm), 0)) return 0;

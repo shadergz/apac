@@ -9,6 +9,7 @@
 
 #include <storage/fio.h>
 #include <storage/extio/flock.h>
+#include <storage/extio/advise.h>
 
 #include <locker.h>
 
@@ -21,6 +22,7 @@ i32 locker_init(apac_ctx_t* apac_ctx) {
 
 	storage_fio_t* proc_file = (storage_fio_t*)apmalloc(sizeof(storage_fio_t));
 	tree_open_file(proc_file, "./lock.alock", "rwc:-", apac_ctx);
+	fio_advise(proc_file, 0, 64, FIO_ADVISE_RANDOM);
 
 	locker->locker_pid = (u16)getpid();
 	locker->saved_st = 0;
