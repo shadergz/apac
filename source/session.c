@@ -30,7 +30,7 @@ static i32 dsp_help(apac_ctx_t* apac_ctx) {
 }
 
 static const char s_apac_version[] = "0.1.4";
-static const char s_apac_rev[] = "a4";
+static const char s_apac_rev[] = "a5";
 
 static i32 dsp_banner(apac_ctx_t* apac_ctx) {
 	const session_ctx_t* session = apac_ctx->user_session;
@@ -82,11 +82,14 @@ static i32 session_cli(i32 argc, char* argv[], apac_ctx_t* apac_ctx) {
 		return user_parser;
 	}
 
-	enable_logsystem(apac_ctx);
 	dsp_banner(apac_ctx);
-	dsp_help(apac_ctx);
+	
+	const i32 dsp = dsp_help(apac_ctx);
+	if (dsp > 0) return 1;
 
-	return 0;
+	const i32 rete = enable_logsystem(apac_ctx);
+
+	return rete;
 }
 
 i32 session_makestorage(apac_ctx_t* apac_ctx) {
@@ -147,16 +150,18 @@ i32 session_init(i32 argc, char* argv[], apac_ctx_t* apac_ctx) {
 		return -1;
 	}
 
-	if (session_cli(argc, argv, apac_ctx) != 0) goto ss_failed;
-	if (session_makestorage(apac_ctx) != 0)     goto storage_failed;
+	i32 sret = -1;
 
-	if (session_backend(apac_ctx) != 0)         goto back_failed;
+	if ((sret = session_cli(argc, argv, apac_ctx)) != 0) goto ss_failed;
+	if (session_makestorage(apac_ctx) != 0)              goto storage_failed;
 
-	if (session_lock(apac_ctx) != 0)            goto lock_failed;
+	if (session_backend(apac_ctx) != 0)                  goto back_failed;
+
+	if (session_lock(apac_ctx) != 0)                     goto lock_failed;
 
 	echo_info(apac_ctx, "Core session was initialized with all components!\n");
 
-	return 0;
+	goto ret_now;
 
 lock_failed:
 	session_unlock(apac_ctx);
@@ -168,7 +173,8 @@ storage_failed:
 	user_cli_deinit(apac_ctx);
 
 ss_failed:
-	return -1;
+ret_now:
+	return sret;
 }
 
 i32 session_deinit(apac_ctx_t* apac_ctx) {

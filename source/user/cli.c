@@ -1,21 +1,23 @@
-#include <signal.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdarg.h>
 
-#include <memctrlext.h>
 #include <strings.h>
+#include <memctrlext.h>
 #include <user/cli.h>
-#include <rt.h>
-#include <layer.h>
+
+#include <user/line_format.h>
+#include <user/cli_clash.h>
 
 #include <echo/fmt.h>
 
 enum cli_arg_type {
 	CLI_ARG_NONE,
 	CLI_ARG_BOOLEAN,
-	CLI_ARG_SWITCHER
+	CLI_ARG_SWITCHER,
+
+	CLI_ARG_STRLIST
 };
 
 enum cli_arg_prob {
@@ -28,13 +30,16 @@ struct cli_arg {
 	i32 type_flags;
 	union {
 		bool bvalue;
+		const char* svalue;
 	};
 };
 
 struct cli_option {
 	const char* option;
 	char opt;
+
 	struct cli_arg argument;
+	bool was_setted;
 };
 
 i32 user_cli_init(apac_ctx_t* apac_ctx) {
@@ -49,46 +54,6 @@ i32 user_cli_init(apac_ctx_t* apac_ctx) {
 	user->enb_colors = false;
 
 	return 0;
-}
-
-static const char cli_bool_true[] = "true";
-static const char cli_switcher_enb[] = "enable";
-
-static bool cli_fmt_bool(const char* boovalue) {
-	if (!boovalue) return false;
-	
-	return strncasecmp(boovalue, cli_bool_true, sizeof cli_bool_true) == 0;
-}
-
-static bool cli_fmt_switcher(const char* switvalue) {
-	if (switvalue == NULL) return false;
-
-	return strncasecmp(switvalue, cli_switcher_enb, sizeof cli_switcher_enb) == 0;
-}
-
-static void cli_clash(apac_ctx_t* apac_ctx, const char* fmt, ...) 
-	__attribute__((noreturn));
-
-static void cli_clash(apac_ctx_t* apac_ctx, const char* fmt, ...) {
-	const session_ctx_t* session = apac_ctx->user_session;
-
-	va_list args;
-	va_start(args, fmt);
-
-	if (session == NULL) run_raise(SIGINT);
-	if (session->user_options == NULL) run_raise(SIGINT);
-	
-	char* cli_msg = NULL;
-	
-	layer_vasprintf(&cli_msg, fmt, args);
-
-	va_end(args);
-
-	if (cli_msg != NULL) {
-		echo_error(apac_ctx, "CLI: %s", cli_msg);
-		apfree(cli_msg);
-	}
-	run_raisef(SIGINT, "was clashed in CLI processing!");
 }
 
 static i32 cli_get(const char** prog_name, i32 argc, char* argv[], 
@@ -134,11 +99,11 @@ static i32 cli_get(const char** prog_name, i32 argc, char* argv[],
 		switch ((enum cli_arg_type)cli->type_flags & 0xff) {
 		case CLI_ARG_NONE: 
 			/* Invalid context value, should be an "assert" here! */ break;
-		case CLI_ARG_BOOLEAN:
-			cli->bvalue = cli_fmt_bool(value); break;
-		case CLI_ARG_SWITCHER:
-			cli->bvalue = cli_fmt_switcher(value); break;
+		case CLI_ARG_BOOLEAN:  cli->bvalue = cli_fmt_bool(value); break;
+		case CLI_ARG_SWITCHER: cli->bvalue = cli_fmt_switcher(value); break;
+		case CLI_ARG_STRLIST:  cli->svalue = strdup(value); break;
 		}
+		opts->was_setted = true;
 
 		return opts->opt;
 	}
@@ -149,12 +114,17 @@ static i32 cli_get(const char** prog_name, i32 argc, char* argv[],
 static struct cli_option s_default_cli_args[] = {
 	#define USER_CLI_HELP     'h'
 	#define USER_CLI_BANNER   'B'
+	#define USER_CLI_IN_LIST  'I'
+	#define USER_CLI_OUT_LIST 'O'
 	#define USER_CLI_WOUT_OPT '\0'
 
-	[0] = {"help",       USER_CLI_HELP,     {CLI_ARG_BOOLEAN  | CLI_PROB_OPTIONAL}},
-	[1] = {"banner",     USER_CLI_BANNER,   {CLI_ARG_BOOLEAN  | CLI_PROB_OPTIONAL}},
-	[2] = {"log-system", USER_CLI_WOUT_OPT, {CLI_ARG_SWITCHER | CLI_PROB_OPTIONAL}},
-	[3] = {}
+	{"help",       USER_CLI_HELP,     {CLI_ARG_BOOLEAN  | CLI_PROB_OPTIONAL}},
+	{"banner",     USER_CLI_BANNER,   {CLI_ARG_BOOLEAN  | CLI_PROB_OPTIONAL}},
+	{"log-system", USER_CLI_WOUT_OPT, {CLI_ARG_SWITCHER | CLI_PROB_OPTIONAL}},
+	{"in",         USER_CLI_IN_LIST,  {CLI_ARG_STRLIST  | CLI_PROB_REQUIRED}},
+	{"out",        USER_CLI_OUT_LIST, {CLI_ARG_STRLIST  | CLI_PROB_REQUIRED}},
+
+	{}
 };
 
 i32 user_cli_parser(i32 argc, char* argv[], apac_ctx_t* apac_ctx) {
@@ -186,6 +156,19 @@ i32 user_cli_san(const apac_ctx_t* apac_ctx) {
 }
 
 i32 user_cli_deinit(apac_ctx_t* apac_ctx) {
+
+	struct cli_option* ptr = s_default_cli_args;
+
+	#define IF_OPTION_HAS_DUP(opt)\
+		if ((opt->argument.type_flags & CLI_ARG_STRLIST) && \
+			opt->was_setted) 
+
+	for (; ptr->option != NULL; ptr++) {
+		IF_OPTION_HAS_DUP(ptr){
+			apfree((char*)ptr->argument.svalue);
+		}
+	}
+
 	return 0;
 }
 

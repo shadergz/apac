@@ -242,6 +242,8 @@ i32 fio_snwritef(char* out, u64 outs, storage_fio_t* file,
 }
 
 i32 fio_finish(storage_fio_t* file) {
+	if (!file) return 0;
+
 	if (file->is_locked) {
 		echo_info(NULL, "Unlocking the file fd %d with filename %s\n", 
 				file->file_fd, file->file_name);

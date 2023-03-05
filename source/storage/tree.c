@@ -86,8 +86,10 @@ storage_fio_t* tree_close_file(bool* closed, const char* filename, apac_ctx_t* a
 	tree_detach_file(file_dir, filename, &fio, apac_ctx);
 
 	*closed = fio_finish(fio) == 0;
-	apfree((char*)fio->file_rel);
-	fio->file_rel = 0;
+	if (fio) {
+		apfree((char*)fio->file_rel);
+		fio->file_rel = 0;
+	}
 
 	return fio;
 }
@@ -235,6 +237,8 @@ i32 tree_close(storage_tree_t* collapse, bool force) {
 
 		goto goahead;
 	}
+
+	if (!collapse->node_file) return 0;
 
 	apfree((char*)collapse->node_file->file_rel);
 	fio_close(collapse->node_file);

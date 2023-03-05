@@ -64,6 +64,7 @@ void* doubly_drop(doublydie_t* doubly) {
 }
 
 void* doubly_next(doublydie_t* doubly) {
+	if (!doubly) return NULL;
 	volatile doublydie_t* cursor = doubly->cursor;
 	
 	// We're reached at end

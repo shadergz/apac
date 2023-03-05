@@ -2,6 +2,8 @@ target_sources(apac PRIVATE
 	main_thread.c 
 
 	user/cli.c
+	user/line_format.c
+	user/cli_clash.c
 
 	strhandler.c
 	layer.c
