@@ -43,8 +43,10 @@ struct cli_option {
 };
 
 i32 user_cli_init(apac_ctx_t* apac_ctx) {
-	user_options_t* user = apac_ctx->user_session->user_options;
-	
+	session_ctx_t* session = apac_ctx->user_session;
+	user_options_t* user = session->user_options;
+	config_user_t* conf = session->user_config;
+
 	user->dsp_help = false;
 	user->dsp_banner = true;
 
@@ -52,6 +54,9 @@ i32 user_cli_init(apac_ctx_t* apac_ctx) {
 
 	user->echo_level = 0;
 	user->enb_colors = false;
+
+	user->in_list  = conf->default_input;
+	user->out_list = conf->default_output;
 
 	return 0;
 }
@@ -138,10 +143,11 @@ i32 user_cli_parser(i32 argc, char* argv[], apac_ctx_t* apac_ctx) {
 		if (!arg) return -1;
 
 		switch (c) {
-		case USER_CLI_HELP: 	
-			user_conf->dsp_help = arg->bvalue; break;
-		case USER_CLI_BANNER:	
-			user_conf->dsp_banner = arg->bvalue; break; 
+		case USER_CLI_HELP:     user_conf->dsp_help = arg->bvalue; break;
+		case USER_CLI_BANNER:   user_conf->dsp_banner = arg->bvalue; break; 
+		case USER_CLI_IN_LIST:  user_conf->in_list = arg->svalue; break;
+		case USER_CLI_OUT_LIST: user_conf->out_list = arg->svalue; break;
+
 		case USER_CLI_WOUT_OPT:
 			if (strncmp(user_opt->option, "log-system", strlen(user_opt->option)) == 0)
 				user_conf->enb_log_system = arg->bvalue;
@@ -168,6 +174,8 @@ i32 user_cli_deinit(apac_ctx_t* apac_ctx) {
 			apfree((char*)ptr->argument.svalue);
 		}
 	}
+
+	memset(apac_ctx->user_session->user_options, 0, sizeof(user_options_t));
 
 	return 0;
 }

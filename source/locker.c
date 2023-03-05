@@ -97,11 +97,9 @@ i32 locker_release(apac_ctx_t* apac_ctx) {
 	if (apac_ctx == NULL) goto delete_file;
 
 	storage_fio_t* driver = tree_getfile("./lock.alock", apac_ctx);
-	if (driver == NULL) {
-		echo_error(apac_ctx, "Locker wan't found, this is a serious bug!\n");
-		return -1;
-
-	}
+	
+	// Already in unlocked state, the driver object wasn't be found
+	if (!driver) return 0;
 
 	char readback[LOCKER_RWB_SZ];
 

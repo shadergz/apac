@@ -1,4 +1,3 @@
-
 #include <stdio.h>
 #include <stdarg.h>
 
@@ -16,6 +15,7 @@
 #include <backend_space.h>
 #include <echo/fmt.h>
 
+#include <conf.h>
 
 static i32 dsp_help(apac_ctx_t* apac_ctx) {
 
@@ -142,15 +142,29 @@ i32 session_unlock(apac_ctx_t* apac_ctx) {
 	return rele;
 }
 
+i32 session_loadconfig(apac_ctx_t* apac_ctx) {
+	i32 conf = conf_init(apac_ctx);
+	conf += conf_load(apac_ctx);
+
+	return conf;
+}
+
 i32 session_init(i32 argc, char* argv[], apac_ctx_t* apac_ctx) {
 	session_ctx_t* session = apac_ctx->user_session;
+	
 	session->user_options = (user_options_t*)apmalloc(sizeof(user_options_t));
-	if (session->user_options == NULL) {
-		echo_error(NULL, "Can't allocate the user options\n");
+	session->user_config  = (config_user_t*) apmalloc(sizeof(config_user_t));
+
+	if (session->user_options == NULL || 
+		session->user_config == NULL) {
+		echo_error(NULL, "Can't allocate the user options or "
+			"the configurations structure\n");
 		return -1;
 	}
 
 	i32 sret = -1;
+
+	if (session_loadconfig(apac_ctx) != 0)               goto ss_failed;
 
 	if ((sret = session_cli(argc, argv, apac_ctx)) != 0) goto ss_failed;
 	if (session_makestorage(apac_ctx) != 0)              goto storage_failed;
@@ -193,7 +207,10 @@ i32 session_deinit(apac_ctx_t* apac_ctx) {
 	tree_close(apac_ctx->root, true);
 	
 	apfree(session_user->user_options);
+	apfree(session_user->user_config);
+
 	session_user->user_options = NULL;
+	session_user->user_config = NULL;
 
 	return 0;
 }

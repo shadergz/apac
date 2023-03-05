@@ -20,6 +20,7 @@ target_sources(apac PRIVATE
 	dyn_loader.c
 	tip.c
 	locker.c
+	conf.c
 
 	pool/spin_lock.c
 	pool/sched_max.c

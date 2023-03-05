@@ -130,6 +130,9 @@ typedef struct user_options {
 	i32 echo_level;
 	bool enb_colors;
 
+	const char* in_list;
+	const char* out_list;
+
 } __attribute__((aligned(4))) user_options_t;
 
 typedef struct echo_ctx {
@@ -143,9 +146,15 @@ typedef struct echo_ctx {
 	
 } echo_ctx_t;
 
+typedef struct config_user {
+	const char* default_input;
+	const char* default_output;
+
+} config_user_t;
+
 typedef struct session_ctx {
 	user_options_t* user_options;
-
+	config_user_t*  user_config;
 } session_ctx_t;
 
 typedef void* external_module_t;
