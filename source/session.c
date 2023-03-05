@@ -31,7 +31,7 @@ static i32 dsp_help(apac_ctx_t* apac_ctx) {
 }
 
 static const char s_apac_version[] = "0.1.4";
-static const char s_apac_rev[] = "a3";
+static const char s_apac_rev[] = "a4";
 
 static i32 dsp_banner(apac_ctx_t* apac_ctx) {
 	const session_ctx_t* session = apac_ctx->user_session;
@@ -95,7 +95,7 @@ static i32 session_cpu_controller(apac_ctx_t* apac_ctx) {
 
 	const i32 sched = sched_init(apac_ctx);
 	if (sched != 0) {
-		echo_error(apac_ctx, "Can't setup the process core thread name, "
+		echo_error(apac_ctx, "Can't setup the main core thread name, "
 			"the scheduler wasn't activated!\n");
 		return sched;
 
@@ -126,9 +126,9 @@ i32 session_makestorage(apac_ctx_t* apac_ctx) {
 
 i32 session_backend(apac_ctx_t* apac_ctx) {
 	const i32 back = back_init(apac_ctx);
-	if (back != 0)
+	if (back != 0) {
 		echo_error(apac_ctx, "Backend components wasn't be initialized\n");
-
+	}
 	return back;
 }
 
@@ -136,9 +136,10 @@ i32 session_lock(apac_ctx_t* apac_ctx) {
 	i32 lret = locker_init(apac_ctx);
 	lret = locker_acquire(apac_ctx);
 
-	if (lret != 0)
+	if (lret != 0) {
 		echo_error(apac_ctx, "Can't acquire the locker file, "
 				"it's a fatal problem\n");
+	}
 
 	return lret;
 }
@@ -173,7 +174,7 @@ i32 session_init(i32 argc, char* argv[], apac_ctx_t* apac_ctx) {
 	}
 
 	if (session_makestorage(apac_ctx) != 0) {
-		echo_error(apac_ctx, "Storage wans't be initialized correct\n");
+		echo_error(apac_ctx, "Storage wasn't be initialized correct\n");
 		goto storage_failed;
 	}
 
@@ -188,7 +189,7 @@ i32 session_init(i32 argc, char* argv[], apac_ctx_t* apac_ctx) {
 		goto lock_failed;
 	}
 
-	echo_info(apac_ctx, "Core session was initialized with all components\n");
+	echo_info(apac_ctx, "Core session was initialized with all components!\n");
 
 	return 0;
 
@@ -224,7 +225,7 @@ i32 session_deinit(apac_ctx_t* apac_ctx) {
 
 	user_cli_deinit(apac_ctx);
 
-	tree_close(apac_ctx->root, true);	
+	tree_close(apac_ctx->root, true);
 	
 	apfree(session_user->user_options);
 	session_user->user_options = NULL;

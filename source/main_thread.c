@@ -95,11 +95,16 @@ i32 main(i32 argc, char** argv) {
 		return -1;
 	}
 
-	session_init(argc, argv, apac_main);
-	
+	const i32 sinit = session_init(argc, argv, apac_main);
+	if (sinit != 0) {
+		echo_error(apac_main, "Session starting was failed, killing the process...\n");
+		goto going_out;
+	}
+
 	echo_success(apac_main, "Hello World my nobre!\n");
 	session_deinit(apac_main);
 
+going_out:
 	apac_deinit(apac_main);
 
 	apfree(apac_main);
