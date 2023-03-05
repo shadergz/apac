@@ -23,6 +23,7 @@ static i32 back_load_ocl(apac_ctx_t* apac_ctx) {
 
 	i32 bret = -1;
 
+	char* ocl_pathname = NULL;
 	// Attempting to load an "OpenCL shared object" local reference
 	if (fio_open("libOpenCL.so", "ref", core->ocl_shared) == 0)   goto load_now;
 	if (fio_open("libOpenCL.so.1", "ref", core->ocl_shared) == 0) goto load_now;
@@ -36,7 +37,6 @@ static i32 back_load_ocl(apac_ctx_t* apac_ctx) {
 	const char* ocl_system = "/usr/lib";
 	#endif
 
-	char* ocl_pathname = NULL;
 	layer_asprintf(&ocl_pathname, "%s/libOpenCL.so", ocl_system);
 	if (fio_open(ocl_pathname, "ref", core->ocl_shared) == 0) goto load_now;
 
