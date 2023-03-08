@@ -22,9 +22,11 @@ target_sources(apac PRIVATE
 	locker.c
 	conf.c
 
-	pool/spin_lock.c
-	pool/superscalar.c
-	pool/sched_ctrl.c
+	sched/spin_lock.c
+	sched/superscalar.c
+	sched/sched_ctrl.c
+	sched/handler.c
+
 	echo/int.c
 
 	thread/ctx_now.c
