@@ -12,6 +12,8 @@
 #include <memctrlext.h>
 #include <strhandler.h>
 
+#include <echo/fmt.h>
+
 #if defined(__x86_64__)
 #include <cpuid.h>
 
@@ -49,6 +51,11 @@ u64 scalar_cpuname(char* cpu_nb, u64 cpu_nsz) {
 #define PROC_BUFFER_MAX_SZ 0x320
 	char* proc_buffer = apmalloc(sizeof(char) * PROC_BUFFER_MAX_SZ);
 	if (proc_buffer == NULL) return -1;
+
+	const i32 rret = read(info_fd, proc_buffer, PROC_BUFFER_MAX_SZ);
+	close(info_fd);
+
+	if (rret == -1) echo_error(NULL, "Can't read from `/proc/cpuinfo`\n");
 
 	char* table = strstr(proc_buffer, "model name");
 	const char* colon = strhandler_skip(table, ": ");
