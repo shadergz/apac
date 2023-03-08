@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <pool/gov.h>
+#include <sched/gov.h>
 #include <time.h>
 
 #if defined(__x86_64__)
@@ -39,9 +39,8 @@ u8 super_getcores() {
 	return cpu_cores;
 }
 
-i32 scalar_cpuinfo(char* cpu_vendor, char* cpu_name,
-		   u64 vesz, u64 namesz, 
-		   char* cpu_features, u64 featuresz,
+i32 scalar_cpuinfo(char* cpu_vendor, char* cpu_name, char* cpu_features,
+		   u64 vesz, u64 namesz, u64 featuresz,
 		   u8* cores_count, u8* threads_count) {
 #if defined(__x86_64__)
 	u32 gpr[0xb];
@@ -100,18 +99,22 @@ setcount:
 	if (hw_cap_level0 & TEST_CAP_SHA1)  strncat(cpu_features, "SHA1, ", featuresz);
 	if (hw_cap_level0 & TEST_CAP_SHA2)  strncat(cpu_features, "SHA2, ", featuresz);
 
-	u32 impl, variant, part, rev;
+	u32 impl;
+	/* On userland, we can't read the Main ID Register with level 0
+	 * (MIDR_EL1) directly, however the linux copies this for other
+	 * coprocessor called: (MIDR_EL1) making it accessible, thanks penguin 🐧!
+	*/
+
+	// https://www.kernel.org/doc/html/latest/arm64/cpu-feature-registers.html
 	__asm__("mrs %0, MIDR_EL1" : "=r" (impl));
-	__asm__("mrs %0, CTR_EL0" : "=r" (variant));
-	__asm__("mrs %0, MIDR_EL1" : "=r" (part));
-	__asm__("mrs %0, REVIDR_EL1" : "=r" (rev));
 
 vendorstr:
-	snprintf(cpu_vendor, vesz, "%c%c%c", impl, impl >> 8, impl >> 16);
+	snprintf(cpu_vendor, vesz, "%Iu.V%u.A%u.P%u.R%u", 
+		impl >> 24 & 0xf,    impl >> 20 & 7, 
+		impl >> 16 & 0xf,    impl >> 4 & 0xfff,
+		impl & 0x7);
 	if (!cpu_name) goto findcores;
 	
-	snprintf(cpu_name, namesz, "ARMv8.%d.%d", (variant >> 16) & 0xf, variant & 0xf);
-
 findcores:
 
 #endif
@@ -154,7 +157,7 @@ static inline void super_workload(u64 inter) {
 #elif defined(__aarch64__)
 		volatile int32x4_t vec_paralel = vdupq_n_s32(summation);
 		vec_paralel = vaddq_s32(vec_paralel, vdupq_n_s32(1));
-		summation += vgetq_lane_s32(vec_paralel, 0);
+		summation = vgetq_lane_s32(vec_paralel, 0);
 #endif
 	}
 }

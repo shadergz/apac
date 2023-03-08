@@ -4,7 +4,7 @@
 #include <pthread.h>
 #include <sys/prctl.h>
 
-#include <pool/gov.h>
+#include <sched/gov.h>
 
 #include <cyclic_hw.h>
 #include <memctrlext.h>

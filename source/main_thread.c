@@ -8,7 +8,7 @@
 #include <rt.h>
 #include <echo/fmt.h>
 
-#include <pool/gov.h>
+#include <sched/gov.h>
 #include <inner.h>
 
 #define WRAPPER_TYPE_TO_STR(type) #type
