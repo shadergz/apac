@@ -1,6 +1,7 @@
 
 add_subdirectory(user)
 add_subdirectory(storage)
+add_subdirectory(sched)
 
 target_sources(apac PRIVATE 
 	main_thread.c 
@@ -21,11 +22,6 @@ target_sources(apac PRIVATE
 	tip.c
 	locker.c
 	conf.c
-
-	sched/spin_lock.c
-	sched/superscalar.c
-	sched/sched_ctrl.c
-	sched/handler.c
 
 	echo/int.c
 
