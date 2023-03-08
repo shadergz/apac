@@ -33,7 +33,6 @@ u8 super_getcores() {
 	return CPU_COUNT(&cores);
 #endif
 
-#define MAX_POSSIBLE_CORES 32
 
 	u8 cpu_cores = 0, cpu_idx = 0;
 	for (; cpu_idx < MAX_POSSIBLE_CORES; cpu_idx++) {

@@ -1,8 +1,11 @@
 #include <pthread.h>
 #include <sched.h>
 
-#include <sched/spin_lock.h>
 #include <stdatomic.h>
+
+#include <sched/spin_lock.h>
+#include <thread/sleep.h>
+#include <thread/ctx_now.h>
 
 static i32 spin_wait(spinlocker_t* mutex) {
 
@@ -10,8 +13,12 @@ static i32 spin_wait(spinlocker_t* mutex) {
 	#define WAIT_SLEEP_BY 2
 	#define WAIT_SLEEP_MS 500 // 1/2 seconds
 
+	#define WAIT_MESSAGE_LEN 0xa
+
 	bool waiting[1] = {true};
 	u64 attempts[1] = {};
+	char wait_[WAIT_MESSAGE_LEN] = {};
+
 	do {
 		++attempts[0];
 		if (spin_rtrylock(mutex) == 0) {
@@ -21,11 +28,17 @@ static i32 spin_wait(spinlocker_t* mutex) {
 		}
 
 		// Putting the current thread into end of the CPU priority queue!
-		if (!(attempts[0] % WAIT_YIELD_BY))
+		if (!(attempts[0] % WAIT_YIELD_BY)) {
+			thread_save(wait_, sizeof wait_, 0, "Yield state");
 			sched_yield();
+			thread_restore(0, wait_);
+		}
 
-		if (!(attempts[0] % WAIT_SLEEP_BY))
+		if (!(attempts[0] % WAIT_SLEEP_BY)) {
+			thread_save(wait_, sizeof wait_, 0, "Sleep state");
 			thread_sleepby(WAIT_SLEEP_MS, THREAD_SLEEPCONV_MILI);
+			thread_restore(0, wait_);
+		}
 	} while (waiting[0] == true);
 	return waiting[0];
 }

@@ -62,7 +62,14 @@ i32 sched_init(apac_ctx_t* apac_ctx) {
 
 	#define SCHED_DEF_THREAD_CNT 8
 
-	const i32 vec_ret = vec_init(sizeof(schedthread_t), SCHED_DEF_THREAD_CNT, gov->thread_info_vec);
+	const i32 vec_ret = vec_init(sizeof(schedthread_t), 
+		SCHED_DEF_THREAD_CNT, 
+		gov->thread_info_vec);
+
+	const u8 ccpu = super_getcores();
+	if (ccpu != SCHED_DEF_THREAD_CNT) {
+		vec_resize(ccpu, gov->thread_info_vec);
+	}
 
 	if (vec_ret == 0 && (sched_configure(0, apac_ctx) != NULL)) {
 		sched_setname("Apac Core", apac_ctx);
