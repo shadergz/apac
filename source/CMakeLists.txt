@@ -23,7 +23,7 @@ target_sources(apac PRIVATE
 	conf.c
 
 	pool/spin_lock.c
-	pool/sched_max.c
+	pool/superscalar.c
 	pool/sched_ctrl.c
 	echo/int.c
 
