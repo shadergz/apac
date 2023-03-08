@@ -28,6 +28,8 @@ i32 sched_start(apac_ctx_t* apac_ctx) {
 	scalar_cpuinfo(cpu_vendormodel, cpu_realname, cpu_features, 
 			CPU_VENDOR_MODELSZ, CPU_REAL_NAME, CPU_FEATURESSZ,
 			NULL, NULL);
+	if (!*cpu_realname)
+		scalar_cpuname(cpu_realname, CPU_REAL_NAME);
 
 	echo_success(apac_ctx, "Sched Thread Pool is taking controller of:\n"
 	      "\tName: %s\n"

@@ -9,6 +9,9 @@
 #include <sched/gov.h>
 #include <time.h>
 
+#include <memctrlext.h>
+#include <strhandler.h>
+
 #if defined(__x86_64__)
 #include <cpuid.h>
 
@@ -37,6 +40,28 @@ u8 super_getcores() {
 	}
 
 	return cpu_cores;
+}
+
+u64 scalar_cpuname(char* cpu_nb, u64 cpu_nsz) {
+	i32 info_fd = open("/proc/cpuinfo", O_RDONLY);
+	if (info_fd < 0) return -1;
+
+#define PROC_BUFFER_MAX_SZ 0x320
+	char* proc_buffer = apmalloc(sizeof(char) * PROC_BUFFER_MAX_SZ);
+	if (proc_buffer == NULL) return -1;
+
+	char* table = strstr(proc_buffer, "model name");
+	const char* colon = strhandler_skip(table, ": ");
+
+	if (!cpu_nb || !colon) {
+		apfree(proc_buffer);
+		return -1;
+	}
+	strncpy(cpu_nb, colon, cpu_nsz);
+
+	const u64 copied = strlen(colon) - cpu_nsz;
+	apfree(proc_buffer);
+	return copied;
 }
 
 i32 scalar_cpuinfo(char* cpu_vendor, char* cpu_name, char* cpu_features,
