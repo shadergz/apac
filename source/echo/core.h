@@ -30,7 +30,7 @@ extern const char* assert_format;
 
 #define echo_assert(ctx, condition, message)\
 	do {\
-		if ((condition))\
+		if (!(condition))\
 			echo_detailed(ctx, ECHO_LEVEL_ASSERT, assert_format, \
 					__LINE__, __FILE__, __func__, #condition, message);\
 	} while(0)

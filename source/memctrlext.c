@@ -31,7 +31,7 @@ void* apcalloc(u64 nele, u64 esize) {
 		return NULL;
 	}
 	
-	echo_assert(NULL, nele % 2 && esize % 2, "Attempting to allocate a non "
+	echo_assert(NULL, esize % 2 == 0, "Attempting to allocate a non "
 		"aligned pointer with calloc");
 	
 	void* new = calloc(nele, esize);
@@ -52,7 +52,7 @@ void* apmalloc(u64 rsize) {
 
 	if (rsize == 0) return NULL;
 	// Memory isn't alignmented, this may lead to some errors
-	echo_assert(NULL, rsize % 2 != 0, "Can't allocate a non aligned pointer");
+	echo_assert(NULL, rsize % 2 == 0, "Can't allocate a non aligned pointer");
 
 	void* nptr = malloc(rsize);
 	#if MALLOC_DEBUG
