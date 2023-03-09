@@ -50,7 +50,7 @@ typedef struct doublydie {
 typedef struct spinlocker {
 	/* Our dedicated atomic variable by the way, using explicitly 
 	 * the atomic keyword! */
-	struct atomic_flag spin;
+	atomic_flag spin;
 	_Atomic u32 recursive_lcount;
 	_Atomic pthread_t owner_thread;
 
