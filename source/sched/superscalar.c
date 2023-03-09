@@ -140,9 +140,9 @@ setcount:
 
 vendorstr:
 	snprintf(cpu_vendor, vesz, "I%u.V%u.A%u.P%u.R%u", 
-		impl >> 24 & 0xf,    impl >> 20 & 7, 
-		impl >> 16 & 0xf,    impl >> 4 & 0xfff,
-		impl & 0x7);
+		(u8)impl >> 24 & 0xf,    (u8)impl >> 20 & 7, 
+		(u8)impl >> 16 & 0xf,    (u8)impl >> 4 & 0xfff,
+		(u8)impl & 0x7);
 	if (!cpu_name) goto findcores;
 	
 findcores:

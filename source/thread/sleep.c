@@ -16,9 +16,10 @@ i32 thread_sleepby(u64 by, thread_sleepconv_e conv) {
 
 	switch (conv) {
 	case THREAD_SLEEPCONV_SECONDS: request.tv_sec = by; break;
-	case THREAD_SLEEPCONV_MILI:
+	case THREAD_SLEEPCONV_MILI: {
 		const u64 nano = by * (u64)pow(10, 6);
 		request.tv_nsec = nano;
+	}
 	case THREAD_SLEEPCONV_NANO:    request.tv_nsec = by; break;
 	default: return -1;
 	}
