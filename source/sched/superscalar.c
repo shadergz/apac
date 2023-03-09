@@ -85,9 +85,9 @@ i32 scalar_cpuinfo(char* cpu_vendor, char* cpu_name, char* cpu_features,
 		   u8* cores_count, u8* threads_count) {
 #if defined(__x86_64__)
 	u32 gpr[0xb];
-	__cpuid(0, gpr[0], gpr[1], gpr[2], gpr[3]);
-
+	
 	if (!cpu_vendor || vesz < 12) goto fetchcpuname;
+	__cpuid(0, gpr[0], gpr[1], gpr[2], gpr[3]);
 
 	*(i32*)(cpu_vendor + 0) = gpr[1];
 	*(i32*)(cpu_vendor + 4) = gpr[3];
@@ -99,19 +99,21 @@ i32 scalar_cpuinfo(char* cpu_vendor, char* cpu_name, char* cpu_features,
 #define CPU_ID_NAME_PART_3 0x80000004
 
 fetchcpuname: __attribute__((cold));
+	if (!cpu_name || namesz < 49) goto setcount;
+	
 	__cpuid(CPU_ID_NAME_PART_1, gpr[0], gpr[1], gpr[2], gpr[3]);
 	__cpuid(CPU_ID_NAME_PART_2, gpr[4], gpr[5], gpr[6], gpr[7]);
 	__cpuid(CPU_ID_NAME_PART_3, gpr[8], gpr[9], gpr[10], gpr[11]);
 	
-	if (!cpu_name || namesz < 49) goto setcount;
 	strncpy(cpu_name, (const char*)gpr, namesz);
 
-setcount:
 	__cpuid(1, gpr[8], gpr[9], gpr[10], gpr[11]);
+	*cpu_features = '\0';
 	if (gpr[10] & bit_SSE4_1) strncat(cpu_features, "SSE41, ", featuresz);
 	if (gpr[10] & bit_SSE4_2) strncat(cpu_features, "SSE42, ", featuresz);
 	if (gpr[10] & bit_AES)    strncat(cpu_features, "AES, ",   featuresz);
 
+setcount:
 #define CPU_ID_CORES 0x80000008
 
 	__cpuid(CPU_ID_CORES, gpr[8], gpr[9], gpr[10], gpr[11]);

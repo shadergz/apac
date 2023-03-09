@@ -28,5 +28,5 @@ void cli_clash(apac_ctx_t* apac_ctx, const char* fmt, ...) {
 		echo_error(apac_ctx, "CLI: %s", cli_msg);
 		apfree(cli_msg);
 	}
-	run_raisef(SIGINT, "was clashed in CLI processing!");
+	run_raisef(SIGINT, "Was clashed in CLI processing!");
 }

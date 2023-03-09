@@ -51,7 +51,7 @@ void* doubly_drop(doublydie_t* doubly) {
 		return user;
 	}
 	
-	void* user = rm->node_data;; 
+	void* user = rm->node_data; 
 	
 	if (!rm->prev)
 		memset(rm, 0, sizeof(*rm));

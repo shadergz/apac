@@ -17,7 +17,7 @@ enum cli_arg_type {
 	CLI_ARG_BOOLEAN,
 	CLI_ARG_SWITCHER,
 
-	CLI_ARG_STRLIST
+	CLI_ARG_STRING
 };
 
 enum cli_arg_prob {
@@ -26,20 +26,13 @@ enum cli_arg_prob {
 	CLI_PROB_REQUIRED = 0x200,
 };
 
-struct cli_arg {
-	i32 type_flags;
-	union {
-		bool bvalue;
-		const char* svalue;
-	};
-};
-
 struct cli_option {
 	const char* option;
 	char opt;
 
-	struct cli_arg argument;
-	bool was_setted;
+	const enum cli_arg_prob opt_probs;
+
+	const enum cli_arg_type opt_flags;
 };
 
 i32 user_cli_init(apac_ctx_t* apac_ctx) {
@@ -61,11 +54,11 @@ i32 user_cli_init(apac_ctx_t* apac_ctx) {
 	return 0;
 }
 
+static bool g_boolean;
+static const char* g_optvalue;
+static const char* g_option;
 static i32 cli_get(const char** prog_name, i32 argc, char* argv[], 
-		struct cli_option* opts, const struct cli_option** save_arg,
-		apac_ctx_t* apac_ctx)
-{
-	if (save_arg) *save_arg = NULL;
+		   const struct cli_option* opts, apac_ctx_t* apac_ctx) {
 	if (argc <= 1 || argv[argc] != NULL) return -1;
 	if (prog_name) *prog_name = argv[0];
 
@@ -79,55 +72,68 @@ static i32 cli_get(const char** prog_name, i32 argc, char* argv[],
 		const char* arg = curr_val;
 		
 		if (*curr_val == '-') {
-			if (strncmp(++arg, opts->option, strlen(opts->option)) != 0) continue;
+			if (strncmp(++arg, opts->option, 
+				strlen(opts->option)) != 0) continue;
 		} else if (*curr_val != '-') {
 			if (*curr_val != opts->opt) continue;
 			curr_val++;
-			if (*curr_val != '=' && *curr_val != '\0') {
-				/* This command line syntax parameter is invalid and must not
-				 * be accepted! */
-				cli_clash(apac_ctx, "invalid parameter name \"%s\" after "
-	      				"\"%s\"\n", 
-					curr_val-2, curr_aptr > 2 ? argv[curr_aptr - 2] 
-					: "none");
-			}
+			if (*curr_val == '=' || *curr_val == '\0') goto clisolver; 
+			/* This command line syntax parameter is invalid and must not
+			 * be accepted! */
+			cli_clash(apac_ctx, "Invalid parameter name \'%s\' after \'%s\'\n", 
+				curr_val-2, curr_aptr > 2 ? argv[curr_aptr-2] : "$none$");
 		}
-		if (save_arg) *save_arg = opts;
-
-		struct cli_arg* cli = &opts->argument;
-		cli->bvalue = true;
-
+clisolver:
+		g_option = arg;
 		const char* value = strchr(arg, '=');
-		if (value == NULL) return opts->opt;
+		if (value == NULL) {
+			if (opts->opt_probs & CLI_PROB_NONE) return opts->opt;
+			if (opts->opt_probs & CLI_PROB_REQUIRED) {
+				cli_clash(apac_ctx, "The option \'%s\', need an argument", arg);
+			}
+			echo_assert(apac_ctx, opts->opt_probs & CLI_PROB_OPTIONAL,
+				"Wtf probes are you using?!\n");
+			g_boolean = true; g_optvalue = "true";
+
+			return opts->opt;
+		}
 		else value++;
 
-		switch ((enum cli_arg_type)cli->type_flags & 0xff) {
-		case CLI_ARG_NONE: 
-			/* Invalid context value, should be an "assert" here! */ break;
-		case CLI_ARG_BOOLEAN:  cli->bvalue = cli_fmt_bool(value); break;
-		case CLI_ARG_SWITCHER: cli->bvalue = cli_fmt_switcher(value); break;
-		case CLI_ARG_STRLIST:  cli->svalue = strdup(value); break;
+		g_optvalue = NULL; g_boolean = false;
+
+		switch (opts->opt_flags) {
+		case CLI_ARG_NONE:
+			echo_assert(apac_ctx, 0 != 0, "Invalid argument context\n"); break;
+		case CLI_ARG_BOOLEAN: {
+			g_boolean = cli_fmt_bool(value); break;
 		}
-		opts->was_setted = true;
+		case CLI_ARG_SWITCHER: {
+			g_boolean = cli_fmt_switcher(value); break;
+		}
+		case CLI_ARG_STRING:  {
+			g_optvalue = strdup(value); break;
+		}
+		}
 
 		return opts->opt;
 	}
 
-	cli_clash(apac_ctx, "command argument \'%s\' not found\n", argv[curr_aptr - 1]);
+	cli_clash(apac_ctx, "Command argument \'%s\' not found\n", argv[curr_aptr - 1]);
+	return -1;
 }
 
-static struct cli_option s_default_cli_args[] = {
+static const struct cli_option g_default_cli_args[] = {
 	#define USER_CLI_HELP     'h'
 	#define USER_CLI_BANNER   'B'
 	#define USER_CLI_IN_LIST  'I'
 	#define USER_CLI_OUT_LIST 'O'
 	#define USER_CLI_WOUT_OPT '\0'
 
-	{"help",       USER_CLI_HELP,     {CLI_ARG_BOOLEAN  | CLI_PROB_OPTIONAL}},
-	{"banner",     USER_CLI_BANNER,   {CLI_ARG_BOOLEAN  | CLI_PROB_OPTIONAL}},
-	{"log-system", USER_CLI_WOUT_OPT, {CLI_ARG_SWITCHER | CLI_PROB_OPTIONAL}},
-	{"in",         USER_CLI_IN_LIST,  {CLI_ARG_STRLIST  | CLI_PROB_REQUIRED}},
-	{"out",        USER_CLI_OUT_LIST, {CLI_ARG_STRLIST  | CLI_PROB_REQUIRED}},
+	{"help",       USER_CLI_HELP,     CLI_PROB_OPTIONAL, CLI_ARG_BOOLEAN },
+	{"banner",     USER_CLI_BANNER,   CLI_PROB_OPTIONAL, CLI_ARG_BOOLEAN },
+	{"log-system", USER_CLI_WOUT_OPT, CLI_PROB_OPTIONAL, CLI_ARG_SWITCHER},
+	{"in",         USER_CLI_IN_LIST,  CLI_PROB_REQUIRED, CLI_ARG_STRING  },
+	{"out",        USER_CLI_OUT_LIST, CLI_PROB_REQUIRED, CLI_ARG_STRING  },
 
 	{}
 };
@@ -136,21 +142,17 @@ i32 user_cli_parser(i32 argc, char* argv[], apac_ctx_t* apac_ctx) {
 	user_options_t* user_conf = apac_ctx->user_session->user_options;
 
 	i32 c;
-	const struct cli_option* user_opt;
 	
-	while ((c = cli_get(NULL, argc, argv, s_default_cli_args, &user_opt, apac_ctx)) != -1) {
-		const struct cli_arg* arg = &user_opt->argument;
-		if (!arg) return -1;
-
+	while ((c = cli_get(NULL, argc, argv, g_default_cli_args, apac_ctx)) != -1) {
 		switch (c) {
-		case USER_CLI_HELP:     user_conf->dsp_help = arg->bvalue; break;
-		case USER_CLI_BANNER:   user_conf->dsp_banner = arg->bvalue; break; 
-		case USER_CLI_IN_LIST:  user_conf->in_list = arg->svalue; break;
-		case USER_CLI_OUT_LIST: user_conf->out_list = arg->svalue; break;
+		case USER_CLI_HELP:     user_conf->dsp_help   = g_boolean; break;
+		case USER_CLI_BANNER:   user_conf->dsp_banner = g_boolean; break; 
+		case USER_CLI_IN_LIST:  user_conf->in_list    = g_optvalue; break;
+		case USER_CLI_OUT_LIST: user_conf->out_list   = g_optvalue; break;
 
 		case USER_CLI_WOUT_OPT:
-			if (strncmp(user_opt->option, "log-system", strlen(user_opt->option)) == 0)
-				user_conf->enb_log_system = arg->bvalue;
+			if (strncmp(g_option, "log-system", strlen(g_option)) == 0)
+				user_conf->enb_log_system = g_boolean;
 		}
 	}
 
@@ -162,18 +164,14 @@ i32 user_cli_san(const apac_ctx_t* apac_ctx) {
 }
 
 i32 user_cli_deinit(apac_ctx_t* apac_ctx) {
+	user_options_t* user_conf = apac_ctx->user_session->user_options;
+	const config_user_t* conf = apac_ctx->user_session->user_config;
 
-	struct cli_option* ptr = s_default_cli_args;
+	#define OPTION_RM_DUP(user, default, field)\
+		if (user->field != default) apfree((char*)user->field) 
 
-	#define IF_OPTION_HAS_DUP(opt)\
-		if ((opt->argument.type_flags & CLI_ARG_STRLIST) && \
-			opt->was_setted) 
-
-	for (; ptr->option != NULL; ptr++) {
-		IF_OPTION_HAS_DUP(ptr){
-			apfree((char*)ptr->argument.svalue);
-		}
-	}
+	OPTION_RM_DUP(user_conf, conf->default_input, in_list);
+	OPTION_RM_DUP(user_conf, conf->default_output, out_list);
 
 	memset(apac_ctx->user_session->user_options, 0, sizeof(user_options_t));
 
