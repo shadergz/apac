@@ -3,8 +3,6 @@
 
 #include <api.h>
 
-i32 inner_apacentry(apac_ctx_t* apac_ctx);
+i32 inner_apacentry (apac_ctx_t *apac_ctx);
 
 #endif
-
-
