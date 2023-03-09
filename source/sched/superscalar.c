@@ -129,7 +129,7 @@ setcount:
 	if (hw_cap_level0 & TEST_CAP_SHA1)  strncat(cpu_features, "SHA1, ", featuresz);
 	if (hw_cap_level0 & TEST_CAP_SHA2)  strncat(cpu_features, "SHA2, ", featuresz);
 
-	u32 impl;
+	u64 impl;
 	/* On userland, we can't read the Main ID Register with level 0
 	 * (MIDR_EL1) directly, however the linux copies this for other
 	 * coprocessor called: (MIDR_EL1) making it accessible, thanks penguin 🐧!
@@ -139,7 +139,7 @@ setcount:
 	__asm__("mrs %0, MIDR_EL1" : "=r" (impl));
 
 vendorstr:
-	snprintf(cpu_vendor, vesz, "%Iu.V%u.A%u.P%u.R%u", 
+	snprintf(cpu_vendor, vesz, "I%u.V%u.A%u.P%u.R%u", 
 		impl >> 24 & 0xf,    impl >> 20 & 7, 
 		impl >> 16 & 0xf,    impl >> 4 & 0xfff,
 		impl & 0x7);
