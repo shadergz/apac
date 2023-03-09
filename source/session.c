@@ -30,7 +30,7 @@ static i32 dsp_help(apac_ctx_t* apac_ctx) {
 }
 
 static const char s_apac_version[] = "0.1.4";
-static const char s_apac_rev[] = "a5";
+static const char s_apac_rev[] = "b2";
 
 static i32 dsp_banner(apac_ctx_t* apac_ctx) {
 	const session_ctx_t* session = apac_ctx->user_session;
@@ -164,14 +164,14 @@ i32 session_init(i32 argc, char* argv[], apac_ctx_t* apac_ctx) {
 
 	i32 sret = -1;
 
-	if (session_loadconfig(apac_ctx) != 0)               goto ss_failed;
+	if ((sret = session_loadconfig(apac_ctx)) != 0)      goto ss_failed;
 
 	if ((sret = session_cli(argc, argv, apac_ctx)) != 0) goto ss_failed;
-	if (session_makestorage(apac_ctx) != 0)              goto storage_failed;
+	if ((sret = session_makestorage(apac_ctx)) != 0)     goto storage_failed;
 
-	if (session_backend(apac_ctx) != 0)                  goto back_failed;
+	if ((sret = session_backend(apac_ctx) != 0))         goto back_failed;
 
-	if (session_lock(apac_ctx) != 0)                     goto lock_failed;
+	if ((sret = session_lock(apac_ctx) != 0))            goto lock_failed;
 
 	echo_info(apac_ctx, "Core session was initialized with all components!\n");
 

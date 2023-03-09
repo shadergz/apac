@@ -6,7 +6,7 @@
 #include <echo/fmt.h>
 #include <echo/core.h>
 
-#include <pool/gov.h>
+#include <sched/gov.h>
 
 static bool echo_canlogger(i32 level, user_options_t* user) {
 	if (user != NULL) return false;

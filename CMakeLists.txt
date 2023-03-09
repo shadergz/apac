@@ -13,6 +13,12 @@ unset(CMAKE_CXX_FLAGS_DEBUG)
 
 set(APAC_IS_COMPILING_FOR_HOST ON)
 
+if (CMAKE_SYSTEM_PROCESSOR MATCHES arm|aarch64)
+	set(APAC_USE_ARCH armv8.1-a)
+else()
+	set(APAC_USE_ARCH native)
+endif()
+
 unset(CMAKE_C_FLAGS)
 
 add_executable(apac)
@@ -25,7 +31,7 @@ target_compile_options(apac PRIVATE -Wall -Wno-uninitialized -pipe -Wno-ignored-
 target_link_options(apac PRIVATE -rdynamic)
 
 if (APAC_IS_COMPILING_FOR_HOST)
-	target_compile_options(apac PRIVATE -march=native)
+	target_compile_options(apac PRIVATE -march=${APAC_USE_ARCH})
 endif()
 
 target_compile_definitions(apac PRIVATE $<$<CONFIG:Debug>:APAC_IS_UNDER_DEBUG=1>)

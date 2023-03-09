@@ -3,6 +3,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdatomic.h>
 
 #define CL_TARGET_OPENCL_VERSION 120
 #include <CL/opencl.h>
@@ -24,7 +25,6 @@ typedef struct stream_mime {
 	const char* parameter;
 
 } stream_mime_t;
-
 
 typedef struct vecdie {
 	void* vec_dynamic;
@@ -50,7 +50,10 @@ typedef struct doublydie {
 typedef struct spinlocker {
 	/* Our dedicated atomic variable by the way, using explicitly 
 	 * the atomic keyword! */
-	_Atomic u32 flag_spawn;
+	atomic_flag spin;
+	_Atomic u32 recursive_lcount;
+	_Atomic pthread_t owner_thread;
+
 } spinlocker_t;
 
 typedef struct schedthread {
@@ -60,6 +63,8 @@ typedef struct schedthread {
 	const char* echo_message;
 	u64 echo_size;
 
+	pid_t native_tid;
+	u8 core_owner;
 } schedthread_t;
 
 typedef struct schedgov {

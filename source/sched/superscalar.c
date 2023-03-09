@@ -1,4 +1,3 @@
-#include <bits/time.h>
 #include <sched.h>
 #include <fcntl.h>
 #include <unistd.h>
@@ -6,8 +5,13 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <pool/gov.h>
+#include <sched/gov.h>
 #include <time.h>
+
+#include <memctrlext.h>
+#include <strhandler.h>
+
+#include <echo/fmt.h>
 
 #if defined(__x86_64__)
 #include <cpuid.h>
@@ -28,7 +32,6 @@ u8 super_getcores() {
 	return CPU_COUNT(&cores);
 #endif
 
-#define MAX_POSSIBLE_CORES 32
 
 	u8 cpu_cores = 0, cpu_idx = 0;
 	for (; cpu_idx < MAX_POSSIBLE_CORES; cpu_idx++) {
@@ -39,9 +42,46 @@ u8 super_getcores() {
 	return cpu_cores;
 }
 
-i32 scalar_cpuinfo(char* cpu_vendor, char* cpu_name,
-		   u64 vesz, u64 namesz, 
-		   char* cpu_features, u64 featuresz,
+u64 scalar_cpuname(char* cpu_nb, u64 cpu_nsz) {
+	i32 info_fd = open("/proc/cpuinfo", O_RDONLY);
+	if (info_fd < 0) return -1;
+
+#if defined(__ANDROID__)
+#define PROC_BUFFER_MAX_SZ 0x3120
+#else
+#define PROC_BUFFER_MAX_SZ 0x320
+#endif
+
+	char* proc_buffer = apmalloc(sizeof(char) * PROC_BUFFER_MAX_SZ);
+	if (proc_buffer == NULL) return -1;
+
+	const i32 rret = read(info_fd, proc_buffer, PROC_BUFFER_MAX_SZ);
+	close(info_fd);
+
+	if (rret == -1) echo_error(NULL, "Can't read from `/proc/cpuinfo`\n");
+
+#if defined(__ANDROID__)
+	char* table = strstr(proc_buffer, "Hardware");
+	const char* colon = strhandler_skip(table, ": ");
+	
+#else
+	char* table = strstr(proc_buffer, "model name");
+	const char* colon = strhandler_skip(table, ": ");
+	#endif
+
+	if (!cpu_nb || !colon) {
+		apfree(proc_buffer);
+		return -1;
+	}
+	strncpy(cpu_nb, colon, cpu_nsz);
+
+	const u64 copied = strlen(colon) - cpu_nsz;
+	apfree(proc_buffer);
+	return copied;
+}
+
+i32 scalar_cpuinfo(char* cpu_vendor, char* cpu_name, char* cpu_features,
+		   u64 vesz, u64 namesz, u64 featuresz,
 		   u8* cores_count, u8* threads_count) {
 #if defined(__x86_64__)
 	u32 gpr[0xb];
@@ -100,18 +140,23 @@ setcount:
 	if (hw_cap_level0 & TEST_CAP_SHA1)  strncat(cpu_features, "SHA1, ", featuresz);
 	if (hw_cap_level0 & TEST_CAP_SHA2)  strncat(cpu_features, "SHA2, ", featuresz);
 
-	u32 impl, variant, part, rev;
+	u64 impl;
+	/* On userland, we can't read the Main ID Register with level 0
+	 * (MIDR_EL1) directly, however the linux copies this for other
+	 * coprocessor called: (MIDR_EL1) making it accessible, thanks penguin 🐧!
+	*/
+
+	// https://www.kernel.org/doc/html/latest/arm64/cpu-feature-registers.html
 	__asm__("mrs %0, MIDR_EL1" : "=r" (impl));
-	__asm__("mrs %0, CTR_EL0" : "=r" (variant));
-	__asm__("mrs %0, MIDR_EL1" : "=r" (part));
-	__asm__("mrs %0, REVIDR_EL1" : "=r" (rev));
 
 vendorstr:
-	snprintf(cpu_vendor, vesz, "%c%c%c", impl, impl >> 8, impl >> 16);
+	snprintf(cpu_vendor, vesz, "I%u.V%u.A%u.P%u.R%u", 
+		(u8)impl >> 24 & 0xf,    (u8)impl >> 20 & 7, 
+		(u8)impl >> 16 & 0xf,    (u8)impl >> 4 & 0xfff,
+		(u8)impl & 0x7);
 	if (!cpu_name) goto findcores;
+	*cpu_name = '\0';
 	
-	snprintf(cpu_name, namesz, "ARMv8.%d.%d", (variant >> 16) & 0xf, variant & 0xf);
-
 findcores:
 
 #endif
@@ -154,7 +199,7 @@ static inline void super_workload(u64 inter) {
 #elif defined(__aarch64__)
 		volatile int32x4_t vec_paralel = vdupq_n_s32(summation);
 		vec_paralel = vaddq_s32(vec_paralel, vdupq_n_s32(1));
-		summation += vgetq_lane_s32(vec_paralel, 0);
+		summation = vgetq_lane_s32(vec_paralel, 0);
 #endif
 	}
 }
