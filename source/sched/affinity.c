@@ -30,15 +30,21 @@ i32 affinity_setnice(i32 nice, pthread_t thid) {
 	return 0;
 }
 
-i32 affinity_set(u8 core, pthread_t thread) {
-	
-	if (!thread) thread = sched_getcpu();
+
+i32 affinity_set(u8 core, pthread_t thread, apac_ctx_t* apac_ctx) {
+
+	if (!thread) thread = pthread_self();
+	if (!core) core = sched_getcpu();
 	if (core >= MAX_POSSIBLE_CORES) return -1;
 
 	cpu_set_t core_set = {};
 	CPU_SET(core, &core_set);
+	
+	schedthread_t* th = sched_find(thread, apac_ctx);
+	#if defined(__ANDROID__)
+	sched_setaffinity(th->native_tid, sizeof core_set, &core_set);
 
-	#if defined(__linux__)
+	#elif defined(__linux__)
 	pthread_setaffinity_np(thread, sizeof core_set, &core_set);
 
 	#else
@@ -50,6 +56,8 @@ i32 affinity_set(u8 core, pthread_t thread) {
 	}
 	...
 	#endif
+
+	th->core_owner = core;
 
 	return 0;
 }

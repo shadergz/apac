@@ -63,6 +63,8 @@ typedef struct schedthread {
 	const char* echo_message;
 	u64 echo_size;
 
+	pid_t native_tid;
+	u8 core_owner;
 } schedthread_t;
 
 typedef struct schedgov {
