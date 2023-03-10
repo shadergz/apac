@@ -39,7 +39,7 @@ apac_san (apac_ctx_t *apac_ctx)
 
 nonallocated:
   echo_error (apac_ctx,
-              "%s wasn't allocated, this is a non irrecuperable status",
+              "%s wasn't allocated, this is a non irrecuperable status\n",
               symbol_name);
   return -1;
 }

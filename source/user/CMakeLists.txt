@@ -3,4 +3,6 @@ target_sources(apac PRIVATE
 	usage.c
 	line_format.c
 	cli_clash.c
+	selector.c
+
 )
