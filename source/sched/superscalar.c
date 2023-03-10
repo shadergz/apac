@@ -95,7 +95,7 @@ scalar_cpuinfo (char *cpu_vendor, char *cpu_name, char *cpu_features, u64 vesz,
                 u64 namesz, u64 featuresz, u8 *cores_count, u8 *threads_count)
 {
 #if defined(__x86_64__)
-  u32 gpr[0xb];
+  u32 gpr[0xc];
 
   if (!cpu_vendor || vesz < 12)
     goto fetchcpuname;
