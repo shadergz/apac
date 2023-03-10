@@ -18,6 +18,28 @@ doubly_init (doublydie_t *doubly)
   return 0;
 }
 
+u64
+doubly_size (const doublydie_t *doubly)
+{
+  if (!doubly)
+    return -1;
+  if (doubly->prev)
+    return -1;
+
+  if (doubly->next == NULL && doubly->node_data)
+    return 1;
+
+  const doublydie_t *aux = doubly;
+  u64 nsize = 1;
+  while (aux->next)
+    {
+      aux = aux->next;
+      nsize++;
+    }
+
+  return nsize;
+}
+
 i32
 doubly_reset (doublydie_t *doubly)
 {
@@ -26,6 +48,36 @@ doubly_reset (doublydie_t *doubly)
   doubly->cursor = NULL;
 
   return 0;
+}
+
+void *
+doubly_curr (const doublydie_t *doubly)
+{
+  if (!doubly)
+    return NULL;
+  if (!doubly->cursor)
+    return doubly->node_data;
+
+  return doubly->cursor->node_data;
+}
+
+void *
+doubly_get (u64 pos, doublydie_t *doubly)
+{
+  if (!doubly)
+    return NULL;
+  doubly_reset (doubly);
+  if (!pos)
+    return NULL;
+
+  for (; pos; pos--)
+    {
+      if (doubly_next (doubly) == NULL)
+        return NULL;
+    }
+
+  void *udata = doubly_curr (doubly);
+  return udata;
 }
 
 doublydie_t *
@@ -93,7 +145,10 @@ doubly_next (doublydie_t *doubly)
 
   if (cursor == NULL && doubly->node_data != NULL)
     {
-      doubly->cursor = doubly;
+      if (doubly->next)
+        doubly->cursor = doubly->next;
+      else
+        doubly->cursor = doubly;
       return doubly->node_data;
     }
 
@@ -101,7 +156,8 @@ doubly_next (doublydie_t *doubly)
     return NULL;
 
   void *ddata = cursor->node_data;
-  doubly->cursor = cursor->next;
+  if (cursor->next)
+    doubly->cursor = cursor->next;
 
   return ddata;
 }
@@ -125,7 +181,7 @@ doubly_insert (void *data, doublydie_t *doubly)
     }
 
   newnode = (doublydie_t *)apmalloc (sizeof *doubly);
-  newnode->next = NULL;
+  newnode->next = newnode->prev = newnode->cursor = NULL;
 
 attribute:
   if (newnode != doubly)
@@ -170,13 +226,20 @@ doubly_rm (void *data, doublydie_t *doubly)
       doubly->node_data = NULL;
       // We're inside the root node, we can't deallocate it!
       if (doubly->next == NULL)
-        return 0;
+        {
+          doubly->node_crc = 0;
+          doubly->cursor = doubly->prev = NULL;
+          return 0;
+        }
       // Removing the next node
       doubly->node_data = doubly->next->node_data;
       doublydie_t *fast_delete = doubly->next;
 
-      doubly->next = doubly->next->next;
+      doubly->node_crc = doubly->next->node_crc;
+
       doubly->next->prev = doubly;
+      doubly->cursor = doubly->next->cursor;
+      doubly->next = doubly->next->next;
       apfree (fast_delete);
     }
 

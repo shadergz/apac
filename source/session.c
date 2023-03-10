@@ -13,6 +13,7 @@
 #include <storage/tree.h>
 
 #include <backend_space.h>
+#include <doubly_int.h>
 #include <echo/fmt.h>
 
 #include <conf.h>
@@ -32,8 +33,8 @@ dsp_help (apac_ctx_t *apac_ctx)
   return result;
 }
 
-static const char s_apac_version[] = "0.1.4";
-static const char s_apac_rev[] = "b2";
+static const char s_apac_version[] = "0.1.5";
+static const char s_apac_rev[] = "a";
 
 static i32
 dsp_banner (apac_ctx_t *apac_ctx)
@@ -188,6 +189,9 @@ session_init (i32 argc, char *argv[], apac_ctx_t *apac_ctx)
 
   session->user_options = (user_options_t *)apmalloc (sizeof (user_options_t));
   session->user_config = (config_user_t *)apmalloc (sizeof (config_user_t));
+  session->selectors = (doublydie_t *)apmalloc (sizeof (doublydie_t));
+
+  doubly_init (session->selectors);
 
   if (session->user_options == NULL || session->user_config == NULL)
     {
@@ -248,8 +252,10 @@ session_deinit (apac_ctx_t *apac_ctx)
 
   tree_close (apac_ctx->root, true);
 
+  doubly_deinit (session_user->selectors);
   apfree (session_user->user_options);
   apfree (session_user->user_config);
+  apfree (session_user->selectors);
 
   session_user->user_options = NULL;
   session_user->user_config = NULL;

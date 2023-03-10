@@ -147,9 +147,6 @@ typedef struct user_options
   i32 echo_level;
   bool enb_colors;
 
-  const char *in_list;
-  const char *out_list;
-
 } __attribute__ ((aligned (4))) user_options_t;
 
 typedef struct echo_ctx
@@ -169,13 +166,10 @@ typedef struct config_user
   const char *default_input;
   const char *default_output;
 
-} config_user_t;
+  const char *exec_script;
+  const char *structure_model;
 
-typedef struct session_ctx
-{
-  user_options_t *user_options;
-  config_user_t *user_config;
-} session_ctx_t;
+} config_user_t;
 
 typedef void *external_module_t;
 typedef void *external_func_t;
@@ -210,6 +204,67 @@ typedef struct lockerproc
   u16 time;
 
 } lockerproc_t;
+
+typedef struct pkg_settings
+{
+  struct
+  {
+    const char *execute_prompt;
+  };
+} pkg_settings_t;
+
+typedef enum pkg_type
+{
+  PKG_TYPE_UNDEFINED_PKZIP,
+  PKG_TYPE_ANDROID_APK,
+  PKG_TYPE_ANDROID_XAPK,
+  PKG_TYPE_ANDROID_OBB,
+  PKG_TYPE_IOS_API
+
+} pkg_type_e;
+
+typedef struct pkg_contatiner
+{
+  pkg_type_e pkgtype;
+
+  u32 pkg_uuid;
+
+  storage_fio_t *pkg_file;
+
+  u8 *pkg_umap;
+
+  const pkg_settings_t *todo;
+} pkg_contatiner;
+
+typedef struct pkg_manager
+{
+  spinlocker_t *mgr_remutex;
+
+  u64 pkg_done;
+  u64 pkg_missing;
+
+  doublydie_t *pkg_dynamiclist;
+
+} pkg_manager_t;
+
+typedef struct rule_selector
+{
+  const char *rule_pkglist;
+  pkg_settings_t *rule_settings;
+
+  const char *rule_outdirs;
+  const char *structure_model;
+  const char *run_script;
+
+} rule_selector_t;
+
+typedef struct session_ctx
+{
+  user_options_t *user_options;
+  config_user_t *user_config;
+
+  doublydie_t *selectors;
+} session_ctx_t;
 
 typedef struct apac_ctx
 {
