@@ -29,7 +29,7 @@ select_move (apac_ctx_t *apac_ctx)
   apfree ((char *)selector->field)
 
 i32
-select_disc (rule_selector_t *dsel, apac_ctx_t *apac_ctx)
+select_remove (rule_selector_t *dsel, apac_ctx_t *apac_ctx)
 {
   session_ctx_t *us = apac_ctx->user_session;
   const config_user_t *conf = us->user_config;

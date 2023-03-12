@@ -10,8 +10,9 @@
 
 typedef uint8_t u8;
 
-typedef int32_t i32;
 typedef uint16_t u16;
+
+typedef int32_t i32;
 typedef uint32_t u32;
 typedef uint64_t u64;
 
@@ -181,12 +182,18 @@ typedef cl_int (*OCL_GETDEVICEIDS_FUNC) (cl_platform_id platform,
                                          cl_uint num_entries,
                                          cl_device_id *devices,
                                          cl_uint *num_devices);
+typedef cl_int (*OCL_GETDEVICEINFO_FUNC) (cl_device_id device,
+                                          cl_device_info param_name,
+                                          size_t param_value_size,
+                                          void *param_value,
+                                          size_t *param_value_size_ret);
 
 typedef struct opencl_int
 {
   opencl_driver_t ocl_driver;
 
   OCL_GETDEVICEIDS_FUNC clGetDeviceIDs;
+  OCL_GETDEVICEINFO_FUNC clGetDeviceInfo;
 
 } opencl_int_t;
 
@@ -223,7 +230,7 @@ typedef enum pkg_type
 
 } pkg_type_e;
 
-typedef struct pkg_contatiner
+typedef struct pkg_container
 {
   pkg_type_e pkgtype;
 
@@ -234,7 +241,7 @@ typedef struct pkg_contatiner
   u8 *pkg_umap;
 
   const pkg_settings_t *todo;
-} pkg_contatiner;
+} pkg_container_t;
 
 typedef struct pkg_manager
 {

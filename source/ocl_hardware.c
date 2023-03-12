@@ -40,6 +40,8 @@ ocl_init (apac_ctx_t *apac_ctx)
 
   AP_LOAD_FUNC (apac_ctx, ocl_int, clGetDeviceIDs, OCL_GETDEVICEIDS_FUNC,
                 OpenCL, -1);
+  AP_LOAD_FUNC (apac_ctx, ocl_int, clGetDeviceInfo, OCL_GETDEVICEINFO_FUNC,
+                OpenCL, -1);
 
   return 0;
 }
@@ -159,6 +161,32 @@ ocl_getdeviceids (apac_ctx_t *apac_ctx, cl_platform_id platform,
 }
 
 i32
+ocl_getdeviceinfo (apac_ctx_t *apac_ctx, cl_device_id device,
+                   cl_device_info param_name, size_t param_value_size,
+                   void *param_value, size_t *param_value_size_ret)
+
+{
+  echo_assert (NULL, apac_ctx != NULL,
+               "Context is null, you can't use this\n");
+
+  backend_ctx_t *back = apac_ctx->core_backend;
+  opencl_int_t *ocl_ptr = back->ocl_interface;
+
+  const cl_int err = ocl_ptr->clGetDeviceInfo (
+      device, param_name, param_value_size, param_value, param_value_size_ret);
+  if (err != CL_SUCCESS)
+    {
+      echo_error (apac_ctx,
+                  "clGetDeviceInfo can't retrieve information from "
+                  "the device %p, because of %s\n",
+                  device, ocl_native_strerr (err));
+      return -1;
+    }
+
+  return 0;
+}
+
+i32
 ocl_deinit (apac_ctx_t *apac_ctx)
 {
   backend_ctx_t *back = apac_ctx->core_backend;
@@ -170,6 +198,7 @@ ocl_deinit (apac_ctx_t *apac_ctx)
   dyn_unload (openCL->ocl_driver);
 
   openCL->clGetDeviceIDs = NULL;
+  openCL->clGetDeviceInfo = NULL;
 
   return 0;
 }

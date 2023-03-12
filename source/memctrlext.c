@@ -35,15 +35,14 @@ apcalloc (u64 nele, u64 esize)
   if (nele == 0 || esize == 0)
     {
       echo_warning (NULL,
-                    "Attempting to allocate a block with a zero expression "
-                    "evaluation, (nele %lu) or (esize %lu) can't be 0!",
+                    "Attempt to allocate a block with a zero expression "
+                    "evaluation, (nele %lu) or (esize %lu) can't be 0!\n",
                     nele, esize);
       return NULL;
     }
 
   echo_assert (NULL, esize % 2 == 0,
-               "Attempting to allocate a non "
-               "aligned pointer with calloc");
+               "Attempt to allocate a non aligned pointer with calloc");
 
   void *new = calloc (nele, esize);
 #if MALLOC_DEBUG

@@ -268,7 +268,7 @@ user_cli_deinit (apac_ctx_t *apac_ctx)
   for (rule_selector_t *pkgr;
        (pkgr = (rule_selector_t *)doubly_next (us->selectors));)
     {
-      select_disc (pkgr, apac_ctx);
+      select_remove (pkgr, apac_ctx);
     }
   doubly_reset (us->selectors);
 
