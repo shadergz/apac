@@ -265,12 +265,63 @@ typedef struct rule_selector
 
 } rule_selector_t;
 
+typedef enum cache_type
+{
+  CACHE_TYPE_STRING,
+  CACHE_TYPE_OCL_BINARY
+} cache_type_e;
+
+typedef struct cache_entry
+{
+  cache_type_e entry_type;
+
+  u64 stream_size;
+  u8 stream[];
+} cache_entry_t;
+
+typedef struct cache_header_t
+{
+  u16 cache_magic;
+  u8 cache_version;
+
+  time_t creation_date;
+  time_t last_access;
+  time_t last_moder;
+
+#define SHA256_BLOCK_SIZE 512 / 8
+
+  u8 sha2_entrsum[SHA256_BLOCK_SIZE];
+
+  u64 entries_count;
+
+  u16 string_entcount;
+  u16 ocl_binary_entcount;
+
+  cache_entry_t entries[];
+} cache_header_t;
+
+typedef struct fast_cache
+{
+  cache_header_t *header;
+  doublydie_t *entries;
+
+#define CACHE_EMAX_SSIZE                                                      \
+  (sizeof (typeof (cache_entry_t)) + 128 - sizeof (void *))
+
+  u8 *cache_ptr;
+  u8 aux_cache[CACHE_EMAX_SSIZE];
+
+} fast_cache_t;
+
 typedef struct session_ctx
 {
   user_options_t *user_options;
   config_user_t *user_config;
 
   doublydie_t *selectors;
+
+  fast_cache_t *fastc;
+
 } session_ctx_t;
 
 typedef struct apac_ctx

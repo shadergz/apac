@@ -22,6 +22,7 @@ target_sources(apac PRIVATE
 	tip.c
 	locker.c
 	conf.c
+	fast_cache.c
 
 	echo/int.c
 
