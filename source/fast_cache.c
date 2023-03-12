@@ -117,6 +117,13 @@ cache_init (apac_ctx_t *apac_ctx)
 {
 
   fast_cache_t *cache = apac_ctx->user_session->fastc;
+  cache->header = apmalloc (sizeof (cache_header_t));
+  if (!cache->header)
+    {
+      echo_error (apac_ctx, "Can't allocate the cache header structure\n");
+      return -1;
+    }
+
   storage_fio_t *cache_file
       = (storage_fio_t *)apmalloc (sizeof (storage_fio_t));
   memset (cache_file, 0, sizeof *cache_file);
@@ -169,9 +176,12 @@ cache_deinit (apac_ctx_t *apac_ctx)
 {
   cache_sync (apac_ctx);
 
-  fast_cache_t *header = apac_ctx->user_session->fastc;
+  fast_cache_t *cache = apac_ctx->user_session->fastc;
 
-  doubly_deinit (header->entries);
+  if (cache->header)
+    apfree (cache->header);
+
+  doubly_deinit (cache->entries);
 
   bool cache_hasclosed;
   tree_close_file (&cache_hasclosed, "layout_level.acache", apac_ctx);

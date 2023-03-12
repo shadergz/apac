@@ -20,8 +20,6 @@
 #include <storage/io_native.h>
 #include <unistd.h>
 
-#define FIO_IS_REFERENCE(perm) (strncasecmp (perm, "ref", 3) == 0)
-
 typedef struct stat native_stat_t;
 
 static i32
@@ -70,7 +68,7 @@ fio_open (const char *path, const char *perm, storage_fio_t *file)
 
   if (relobs)
     file->file_name = strdup (relobs + 1);
-  if (__builtin_expect (FIO_IS_REFERENCE (perm), 0))
+  if (strncasecmp (perm, "ref", strlen ("ref")) == 0)
     return 0;
   if (fio_check (stat_buffer, file) != 0)
     goto ferror;
