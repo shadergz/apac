@@ -1,4 +1,5 @@
 
+#include <fcntl.h>
 #include <limits.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -228,6 +229,10 @@ fio_seekbuffer (storage_fio_t *file, u64 offset, fio_seek_e seek_type)
       if (offset < file->cache_valid)
         file->cache_cursor = file->rw_cache + offset;
       file->cursor_offset = offset;
+    case FIO_SEEK_CURSOR:
+      lseek (file->file_fd, offset, SEEK_CUR);
+      if (!offset)
+        break;
     }
   const i32 fret = fsync (file->file_fd);
 
@@ -300,6 +305,22 @@ fio_finish (storage_fio_t *file)
   const i32 cl = fio_close (file);
 
   return cl;
+}
+
+i32
+fio_ondisk (storage_fio_t *file, u64 offset, u64 len, fio_ondisk_e method_type)
+{
+  if (!file)
+    return -1;
+
+  switch (method_type)
+    {
+    case FIO_ONDISK_PREALLOCATE:
+      posix_fallocate (file->file_fd, offset, len);
+      break;
+    }
+
+  return 0;
 }
 
 i32
