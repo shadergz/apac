@@ -91,25 +91,27 @@ cache_reload (apac_ctx_t *apac_ctx)
       return 0;
     }
 
-  for (u64 eidx = 0; eidx < header->entries_count; eidx++)
+  u64 eidx = 0;
+  for (; eidx < header->entries_count; eidx++)
     {
       cache_entry_t *entity = cache_readent (driver, cache);
       cache_entry_t *dnode
           = apmalloc (sizeof (u8) * entity->stream_size + sizeof *entity - 8);
 
-      if (dnode == NULL)
+      if (__builtin_expect (dnode == NULL, 0))
         {
-          echo_error (
-              apac_ctx,
-              "Can't allocate a node for a cache entry in position %lu\n",
-              eidx);
-          return -1;
+          echo_error (apac_ctx,
+                      "Can't allocate a node for a "
+                      "cache entry in position %lu\n",
+                      eidx);
+          eidx = -1;
+          break;
         }
 
       doubly_insert (dnode, cache->entries);
     }
 
-  return 0;
+  return eidx;
 }
 
 i32
@@ -117,7 +119,7 @@ cache_init (apac_ctx_t *apac_ctx)
 {
 
   fast_cache_t *cache = apac_ctx->user_session->fastc;
-  cache->header = apmalloc (sizeof (cache_header_t));
+  cache->header = (cache_header_t *)apmalloc (sizeof (cache_header_t));
   if (!cache->header)
     {
       echo_error (apac_ctx, "Can't allocate the cache header structure\n");
@@ -137,7 +139,9 @@ cache_init (apac_ctx_t *apac_ctx)
 
   // We will read the entire cache header at once
   fio_advise (cache_file, 0, sizeof *cache->header, FIO_ADVISE_ENTIRE);
-  const i32 cre = cache_reload (apac_ctx);
+  i32 cre = cache_reload (apac_ctx);
+  if (cre != -1)
+    cre = 0;
 
   return cre;
 }
@@ -178,13 +182,23 @@ cache_deinit (apac_ctx_t *apac_ctx)
 
   fast_cache_t *cache = apac_ctx->user_session->fastc;
 
-  if (cache->header)
+  if (cache->header != NULL)
     apfree (cache->header);
+
+  doubly_reset (cache->entries);
+
+  for (cache_entry_t *ent = NULL; (ent = doubly_next (cache->entries));)
+    apfree (ent);
 
   doubly_deinit (cache->entries);
 
   bool cache_hasclosed;
   tree_close_file (&cache_hasclosed, "layout_level.acache", apac_ctx);
 
-  return 0;
+  if (cache_hasclosed != true)
+    {
+      echo_error (apac_ctx, "Can't close the cache file\n");
+    }
+
+  return cache_hasclosed == true ? 0 : -1;
 }

@@ -11,12 +11,11 @@
 #include <inner.h>
 #include <sched/gov.h>
 
-#define WRAPPER_TYPE_TO_STR(type) #type
-#define TYPE_2_STR(type) WRAPPER_TYPE_TO_STR (typeof (type))
-
 static i32
 apac_san (apac_ctx_t *apac_ctx)
 {
+#define WRAPPER_TYPE_TO_STR(type) #type
+#define TYPE_2_STR(type) WRAPPER_TYPE_TO_STR (typeof (type))
   const char *symbol_name = NULL;
 
   if (apac_ctx->user_session == NULL)
@@ -42,6 +41,8 @@ nonallocated:
               "%s wasn't allocated, this is a non irrecuperable status\n",
               symbol_name);
   return -1;
+#undef WRAPPER_TYPE_TO_STR
+#undef TYPE_2_STR
 }
 
 static i32
