@@ -208,7 +208,7 @@ error_read:
               file->file_path, strerror (errno));
   if (errno == EBADF)
     echo_info (NULL,
-               "May the fd %d from %s is corrupted or not "
+               "May the fd %d from %s is corrupted or isn't "
                "more valid\n",
                file->file_fd, file->file_path);
 
@@ -220,6 +220,9 @@ error_read:
 i32
 fio_seekbuffer (storage_fio_t *file, u64 offset, fio_seek_e seek_type)
 {
+  if (!file)
+    return -1;
+
   switch (seek_type)
     {
     case FIO_SEEK_SET:

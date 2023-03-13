@@ -20,7 +20,7 @@ cache_dump_info (apac_ctx_t *apac_ctx)
   fast_cache_t *cache = apac_ctx->user_session->fastc;
   cache_header_t *header = cache->header;
 
-  native_time_t *time_CAM[3] = {};
+  const native_time_t *time_CAM[3] = {};
 
   time_CAM[0] = localtime (&header->creation_date);
   time_CAM[1] = localtime (&header->last_access);
@@ -64,7 +64,7 @@ cache_reload (apac_ctx_t *apac_ctx)
   fast_cache_t *cache = apac_ctx->user_session->fastc;
   cache_header_t *header = cache->header;
 
-  storage_fio_t *driver = tree_getfile ("layout_level.acache", apac_ctx);
+  storage_fio_t *driver = tree_getfile ("./layout_level.acache", apac_ctx);
 
   fio_seekbuffer (driver, 0, FIO_SEEK_SET);
   fio_read (driver, cache->header, sizeof *header);
@@ -98,7 +98,7 @@ cache_reload (apac_ctx_t *apac_ctx)
       cache_entry_t *dnode
           = apmalloc (sizeof (u8) * entity->stream_size + sizeof *entity - 8);
 
-      if (__builtin_expect (dnode == NULL, 0))
+      if (__builtin_expect (dnode != NULL, 0))
         {
           echo_error (apac_ctx,
                       "Can't allocate a node for a "
@@ -151,7 +151,7 @@ cache_sync (apac_ctx_t *apac_ctx)
 {
   fast_cache_t *cache = apac_ctx->user_session->fastc;
   cache_header_t *header = cache->header;
-  storage_fio_t *driver = tree_getfile ("layout_level.acache", apac_ctx);
+  storage_fio_t *driver = tree_getfile ("./layout_level.acache", apac_ctx);
 
   fio_seekbuffer (driver, 0, FIO_SEEK_SET);
   fio_ondisk (driver, 0, sizeof *header, FIO_ONDISK_PREALLOCATE);
@@ -162,8 +162,8 @@ cache_sync (apac_ctx_t *apac_ctx)
 }
 
 i32
-cache_fetch (cache_entry_t *entries, u64 entries_count, cache_type_e retr_type,
-             apac_ctx_t *apac_ctx)
+cache_fetch (cache_entry_t *entries, u64 entries_count, u64 entry_size,
+             cache_type_e retr_type, apac_ctx_t *apac_ctx)
 {
   return 0;
 }
@@ -193,7 +193,7 @@ cache_deinit (apac_ctx_t *apac_ctx)
   doubly_deinit (cache->entries);
 
   bool cache_hasclosed;
-  tree_close_file (&cache_hasclosed, "layout_level.acache", apac_ctx);
+  tree_close_file (&cache_hasclosed, "./layout_level.acache", apac_ctx);
 
   if (cache_hasclosed != true)
     {

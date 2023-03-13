@@ -30,3 +30,4 @@ tip_ocl_driver (const char *tip_driver)
 #endif
   }
 }
+#undef CHECK_TIP

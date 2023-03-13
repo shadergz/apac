@@ -3,7 +3,7 @@
 #include <echo/fmt.h>
 #include <memctrlext.h>
 
-#define MALLOC_MAX_LIMIT 1 << 7 // 128 bytes (if u will want more simplicity)
+#define MALLOC_MAX_LIMIT 1 << 7 // 128 bytes (if you want more simplicity)
 #define MALLOC_DEBUG 0
 
 u64
@@ -24,7 +24,7 @@ memctrl_report (u64 block_size, void *new, const char *wrapper_name)
 
   echo_debug (NULL,
               "New memory block of size %#04lu allocated at %#p, "
-              "using %8s wrapper\n",
+              "using (%8s) wrapper\n",
               block_size, new, wrapper_name);
 }
 #endif
@@ -84,10 +84,10 @@ apfree (void *endptr)
 
 #if MALLOC_DEBUG
 #if defined(__linux__)
-  echo_debug (NULL, "Memory in %#p with %04lu being de-allocated\n", endptr,
+  echo_debug (NULL, "Memory in %#p with %04lu being deallocated\n", endptr,
               malloc_usable_size (endptr));
 #else
-  echo_debug (NULL, "Memory in %#p being de-allocated\n", endptr);
+  echo_debug (NULL, "Memory in %#p being deallocated\n", endptr);
 #endif
 
 #endif

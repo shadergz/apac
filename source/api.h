@@ -5,7 +5,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#define CL_TARGET_OPENCL_VERSION 120
+#define CL_TARGET_OPENCL_VERSION 200
 #include <CL/opencl.h>
 
 typedef uint8_t u8;
@@ -268,12 +268,21 @@ typedef struct rule_selector
 typedef enum cache_type
 {
   CACHE_TYPE_STRING,
-  CACHE_TYPE_OCL_BINARY
+  CACHE_TYPE_RAW_DATA
 } cache_type_e;
+
+typedef enum cache_special_id
+{
+  CACHE_SPECIAL_ID_OCL_BINARIES
+} cache_special_id_e;
 
 typedef struct cache_entry
 {
   cache_type_e entry_type;
+  cache_special_id_e entry_special;
+
+#define ENTRY_DESC_SZ 0xb
+  char entry_desc[ENTRY_DESC_SZ];
 
   u64 stream_size;
   u8 stream[];
@@ -305,11 +314,10 @@ typedef struct fast_cache
   cache_header_t *header;
   doublydie_t *entries;
 
-#define CACHE_EMAX_SSIZE                                                      \
-  (sizeof (typeof (cache_entry_t)) + 128 - sizeof (void *))
+#define CACHE_AUX_BSZ (sizeof (typeof (cache_entry_t)) + 256)
 
   u8 *cache_ptr;
-  u8 aux_cache[CACHE_EMAX_SSIZE];
+  u8 aux_cache[CACHE_AUX_BSZ];
 
 } fast_cache_t;
 
