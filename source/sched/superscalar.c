@@ -49,12 +49,15 @@ super_getcores ()
 u64
 scalar_cpuname (char *cpu_nb, u64 cpu_nsz)
 {
-  i32 info_fd = open ("/proc/cpuinfo", O_RDONLY);
+  static const char *proc_path = "/proc/cpuinfo";
+
+  i32 info_fd = open (proc_path, O_RDONLY);
+
   if (info_fd < 0)
     return -1;
 
 #if defined(__ANDROID__)
-#define PROC_BUFFER_MAX_SZ 0x3120
+#define PROC_BUFFER_MAX_SZ 0x3020
 #else
 #define PROC_BUFFER_MAX_SZ 0x320
 #endif
@@ -67,11 +70,17 @@ scalar_cpuname (char *cpu_nb, u64 cpu_nsz)
   close (info_fd);
 
   if (rret == -1)
-    echo_error (NULL, "Can't read from `/proc/cpuinfo`\n");
+    {
+      echo_error (NULL, "Can't read from `%s`\n", proc_path);
+      return -1;
+    }
 
 #if defined(__ANDROID__)
   char *table = strstr (proc_buffer, "Hardware");
   const char *colon = strhandler_skip (table, ": ");
+  char *rline = strrchr (colon, '\n');
+  if (rline)
+    *rline = '\0';
 
 #else
   char *table = strstr (proc_buffer, "model name");
