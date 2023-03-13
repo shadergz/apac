@@ -327,9 +327,6 @@ typedef struct session_ctx
   config_user_t *user_config;
 
   doublydie_t *selectors;
-
-  fast_cache_t *fastc;
-
 } session_ctx_t;
 
 typedef struct apac_ctx
@@ -345,6 +342,8 @@ typedef struct apac_ctx
   storage_tree_t *root;
 
   lockerproc_t *locker;
+
+  fast_cache_t *fastc;
 } apac_ctx_t;
 
 #endif

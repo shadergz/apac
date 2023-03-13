@@ -60,7 +60,7 @@ tree_detach_file (storage_tree_t *from, const char *restrict relative,
 {
   *in = NULL;
 
-  char *file_relative = NULL;
+  char *file_relative;
 
   for (storage_tree_t *next = NULL;
        (next = doubly_next (from->leafs)) != NULL;)
@@ -72,10 +72,14 @@ tree_detach_file (storage_tree_t *from, const char *restrict relative,
       if (nfile == NULL)
         return -1;
 
+      file_relative = NULL;
       layer_asprintf (&file_relative, "%s/%s", nfile->file_rel,
                       nfile->file_name);
       if (strncmp (file_relative, relative, strlen (file_relative)) != 0)
-        continue;
+        {
+          apfree (file_relative);
+          continue;
+        }
       /* We have found the correct relative pathname file object
        * dropping the actual node pointed by `cursor`! */
       doubly_drop (from->leafs);
@@ -102,9 +106,9 @@ tree_close_file (bool *closed, const char *filename, apac_ctx_t *apac_ctx)
   storage_fio_t *fio;
   tree_detach_file (file_dir, filename, &fio, apac_ctx);
 
-  *closed = fio_finish (fio) == 0;
   if (fio)
     {
+      *closed = fio_finish (fio) == 0;
       apfree ((char *)fio->file_rel);
       fio->file_rel = 0;
     }

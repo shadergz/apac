@@ -68,6 +68,9 @@ fio_open (const char *path, const char *perm, storage_fio_t *file)
 
   if (relobs)
     file->file_name = strdup (relobs + 1);
+  else
+    file->file_name = file->file_path;
+
   if (strncasecmp (perm, "ref", strlen ("ref")) == 0)
     return 0;
   if (fio_check (stat_buffer, file) != 0)
@@ -294,7 +297,7 @@ fio_finish (storage_fio_t *file)
 
   if (file->is_link)
     apfree ((char *)file->real_filename);
-  if (file->file_name)
+  if (file->file_name && file->file_name != file->file_path)
     apfree ((char *)file->file_name);
 
   if (file->file_path)

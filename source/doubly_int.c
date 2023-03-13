@@ -106,6 +106,8 @@ void *
 doubly_drop (doublydie_t *doubly)
 {
   doublydie_t *rm = doubly->cursor;
+  doubly->cursor = NULL;
+
   if (!rm || rm == doubly)
     {
       void *user = doubly->node_data;

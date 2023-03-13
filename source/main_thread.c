@@ -57,12 +57,15 @@ apac_init (apac_ctx_t *apac_ctx)
   apac_ctx->root = (storage_tree_t *)apmalloc (sizeof (storage_tree_t));
   apac_ctx->locker = (lockerproc_t *)apmalloc (sizeof (lockerproc_t));
 
+  apac_ctx->fastc = (fast_cache_t *)apmalloc (sizeof (fast_cache_t));
+
   memset (apac_ctx->user_session, 0, sizeof (*apac_ctx->user_session));
   memset (apac_ctx->echo_system, 0, sizeof (*apac_ctx->echo_system));
   memset (apac_ctx->core_backend, 0, sizeof (*apac_ctx->core_backend));
   memset (apac_ctx->governor, 0, sizeof (*apac_ctx->governor));
   memset (apac_ctx->root, 0, sizeof (*apac_ctx->root));
   memset (apac_ctx->locker, 0, sizeof (*apac_ctx->locker));
+  memset (apac_ctx->fastc, 0, sizeof (*apac_ctx->fastc));
 
   const i32 sanret = apac_san (apac_ctx);
   if (sanret != 0)
@@ -91,6 +94,8 @@ apac_deinit (apac_ctx_t *apac_ctx)
     apfree (apac_ctx->root);
   if (apac_ctx->locker != NULL)
     apfree (apac_ctx->locker);
+  if (apac_ctx->fastc != NULL)
+    apfree (apac_ctx->fastc);
 
   return 0;
 }

@@ -17,21 +17,21 @@ typedef struct tm native_time_t;
 i32
 cache_dump_info (apac_ctx_t *apac_ctx)
 {
-  fast_cache_t *cache = apac_ctx->user_session->fastc;
+  fast_cache_t *cache = apac_ctx->fastc;
   cache_header_t *header = cache->header;
 
-  const native_time_t *time_CAM[3] = {};
+  native_time_t time_CAM[3] = {};
 
-  time_CAM[0] = localtime (&header->creation_date);
-  time_CAM[1] = localtime (&header->last_access);
-  time_CAM[2] = localtime (&header->last_moder);
+  localtime_r (&header->creation_date, &time_CAM[0]);
+  localtime_r (&header->last_access, &time_CAM[1]);
+  localtime_r (&header->last_moder, &time_CAM[2]);
 
-#define FORMATTED_SIZEBF 0x100
-  char formatted_time[FORMATTED_SIZEBF][3];
+#define FORMATTED_SIZEBF 0x36
+  char formatted_time[3][FORMATTED_SIZEBF];
 
-  strftime (formatted_time[0], FORMATTED_SIZEBF, "%T", time_CAM[0]);
-  strftime (formatted_time[1], FORMATTED_SIZEBF, "%T", time_CAM[1]);
-  strftime (formatted_time[2], FORMATTED_SIZEBF, "%T", time_CAM[2]);
+  strftime (formatted_time[0], FORMATTED_SIZEBF, "%T", &time_CAM[0]);
+  strftime (formatted_time[1], FORMATTED_SIZEBF, "%T", &time_CAM[1]);
+  strftime (formatted_time[2], FORMATTED_SIZEBF, "%T", &time_CAM[2]);
 
   echo_success (apac_ctx,
                 "Treating cache file with:\n"
@@ -61,7 +61,7 @@ cache_readent (storage_fio_t *driver, fast_cache_t *cache)
 u64
 cache_reload (apac_ctx_t *apac_ctx)
 {
-  fast_cache_t *cache = apac_ctx->user_session->fastc;
+  fast_cache_t *cache = apac_ctx->fastc;
   cache_header_t *header = cache->header;
 
   storage_fio_t *driver = tree_getfile ("./layout_level.acache", apac_ctx);
@@ -76,7 +76,10 @@ cache_reload (apac_ctx_t *apac_ctx)
       = header->string_entcount + header->ocl_binary_entcount;
 
   if (header->creation_date == 0)
-    header->creation_date = time (NULL);
+    {
+      header->cache_magic = 0xcace;
+      header->creation_date = header->last_moder = time (NULL);
+    }
   header->last_access = time (NULL);
 
   if (sanentries_cnt != header->entries_count)
@@ -118,7 +121,7 @@ i32
 cache_init (apac_ctx_t *apac_ctx)
 {
 
-  fast_cache_t *cache = apac_ctx->user_session->fastc;
+  fast_cache_t *cache = apac_ctx->fastc;
   cache->header = (cache_header_t *)apmalloc (sizeof (cache_header_t));
   if (!cache->header)
     {
@@ -130,7 +133,7 @@ cache_init (apac_ctx_t *apac_ctx)
       = (storage_fio_t *)apmalloc (sizeof (storage_fio_t));
   memset (cache_file, 0, sizeof *cache_file);
 
-  tree_open_file (cache_file, "layout_level.acache", "rwc:-", apac_ctx);
+  tree_open_file (cache_file, "./layout_level.acache", "rwc:-", apac_ctx);
   if (cache_file->file_fd < 0)
     return -1;
 
@@ -149,7 +152,7 @@ cache_init (apac_ctx_t *apac_ctx)
 i32
 cache_sync (apac_ctx_t *apac_ctx)
 {
-  fast_cache_t *cache = apac_ctx->user_session->fastc;
+  fast_cache_t *cache = apac_ctx->fastc;
   cache_header_t *header = cache->header;
   storage_fio_t *driver = tree_getfile ("./layout_level.acache", apac_ctx);
 
@@ -180,7 +183,7 @@ cache_deinit (apac_ctx_t *apac_ctx)
 {
   cache_sync (apac_ctx);
 
-  fast_cache_t *cache = apac_ctx->user_session->fastc;
+  fast_cache_t *cache = apac_ctx->fastc;
 
   if (cache->header != NULL)
     apfree (cache->header);
@@ -193,7 +196,12 @@ cache_deinit (apac_ctx_t *apac_ctx)
   doubly_deinit (cache->entries);
 
   bool cache_hasclosed;
-  tree_close_file (&cache_hasclosed, "./layout_level.acache", apac_ctx);
+  storage_fio_t *fobject = NULL;
+  fobject
+      = tree_close_file (&cache_hasclosed, "./layout_level.acache", apac_ctx);
+
+  if (fobject)
+    apfree (fobject);
 
   if (cache_hasclosed != true)
     {
