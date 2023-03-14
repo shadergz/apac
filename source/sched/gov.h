@@ -3,6 +3,8 @@
 
 #include <api.h>
 
+#define THREAD_ID_DEFAULT_VALUE (u32) - 1
+
 #define MAX_POSSIBLE_CORES 32
 #define SOLVE_CORE_ID MAX_POSSIBLE_CORES
 
@@ -11,7 +13,8 @@ i32 sched_deinit (apac_ctx_t *apac_ctx);
 
 u8 sched_getcount (const apac_ctx_t *apac_ctx);
 schedthread_t *sched_find (u32 thread, apac_ctx_t *apac_ctx);
-schedthread_t *sched_configure (u32 thread, apac_ctx_t *apac_ctx);
+i32 sched_configure (schedthread_t *thinfo, apac_ctx_t *apac_ctx);
+i32 sched_cleanups (schedthread_t *thread, apac_ctx_t *apac_ctx);
 
 u8 super_getcores ();
 i32 scalar_cpuinfo (char *cpu_vendor, char *cpu_name, char *cpu_features,
@@ -22,5 +25,14 @@ u64 scalar_cpuname (char *cpu_nb, u64 cpu_nsz);
 
 i32 sched_start (apac_ctx_t *apac_ctx);
 i32 sched_stop (apac_ctx_t *apac_ctx);
+
+i32 orchestra_spawn (schedthread_t *thread, apac_ctx_t *apac_ctx);
+i32 orchestra_die (schedthread_t *thread, apac_ctx_t *apac_ctx);
+
+void *worker_entry (void *apac_ptr);
+void worker_killsig (i32 thrsig);
+
+i32 sched_setname (const char *message, apac_ctx_t *apac_ctx);
+i32 sched_unsetname (apac_ctx_t *apac_ctx);
 
 #endif

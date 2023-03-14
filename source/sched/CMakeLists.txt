@@ -7,5 +7,7 @@ target_sources(apac PRIVATE
 	sched_ctrl.c
 	handler.c
 
+	worker_thread.c
+
 )
 

@@ -1,19 +1,16 @@
+
 #include <sched/gov.h>
+#include <sched/spin_lock.h>
+#include <thread/sleep.h>
 
 #include <echo/fmt.h>
 
 #include <memctrlext.h>
+#include <vec.h>
 
-/* Spawn all physical threads as logical workers after fetcher the
- * real core count from the host CPU */
-i32
-sched_start (apac_ctx_t *apac_ctx)
+static i32
+sched_dump_cpuinfo (apac_ctx_t *apac_ctx)
 {
-  u8 physic_cores = super_getcores ();
-  echo_assert (apac_ctx, physic_cores > 0,
-               "Pool: invalid count of cores, "
-               "this must be reported!\n");
-
 #define CPU_REAL_NAME 0x40
 #define CPU_VENDOR_MODELSZ 0x40
 #define CPU_FEATURESSZ 0x70
@@ -51,8 +48,69 @@ sched_start (apac_ctx_t *apac_ctx)
   return 0;
 }
 
+/* Spawn all physical threads as logical workers after fetcher the
+ * real core count from the host CPU */
+i32
+sched_start (apac_ctx_t *apac_ctx)
+{
+  sched_dump_cpuinfo (apac_ctx);
+
+  schedgov_t *scheduler = apac_ctx->governor;
+  // Getting from the vector capacity value, cause we already preallocate it
+  // somewhere else
+  u8 cores_count = vec_capacity (scheduler->threads_info);
+
+  i32 thread_created = 0;
+  // Minus (1) cause we already have a thread being executed (us!, doooh)
+  for (thread_created = 0; thread_created < cores_count - 1; thread_created++)
+    {
+      schedthread_t *newth = vec_emplace (scheduler->threads_info);
+      newth->thread_id = THREAD_ID_DEFAULT_VALUE;
+
+      const i32 orret = orchestra_spawn (newth, apac_ctx);
+      echo_debug (apac_ctx, "New thread has created in %p\n", newth);
+
+      if (orret != 0)
+        {
+          echo_error (apac_ctx, "Can't creates a new thread in %p\n", newth);
+        }
+    }
+
+  // We can't have just one thread, this is an insane situation
+  return thread_created != 0 ? 0 : -1;
+}
+
 i32
 sched_stop (apac_ctx_t *apac_ctx)
 {
+  schedgov_t *gov = apac_ctx->governor;
+
+  while (1)
+    {
+      thread_sleepby (10, THREAD_SLEEPCONV_MILI);
+      spin_rlock (&gov->mutex);
+
+      u8 threads = gov->threads_count;
+      u8 cores = gov->cores;
+
+      spin_runlock (&gov->mutex);
+
+      if (threads == cores)
+        break;
+    }
+
+  const u8 thread_count = vec_capacity (gov->threads_info);
+
+  vec_reset (gov->threads_info);
+  // We can't detach the main thread, just clean up it!
+  schedthread_t *main_thread = vec_next (gov->threads_info);
+  for (i32 thidx = 1; thidx < thread_count; thidx++)
+    {
+      schedthread_t *thXX = vec_next (gov->threads_info);
+      orchestra_die (thXX, apac_ctx);
+    }
+
+  sched_cleanups (main_thread, apac_ctx);
+
   return 0;
 }

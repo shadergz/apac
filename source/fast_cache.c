@@ -123,6 +123,8 @@ cache_init (apac_ctx_t *apac_ctx)
 
   fast_cache_t *cache = apac_ctx->fastc;
   cache->header = (cache_header_t *)apmalloc (sizeof (cache_header_t));
+  memset (cache->header, 0, sizeof (*cache->header));
+
   if (!cache->header)
     {
       echo_error (apac_ctx, "Can't allocate the cache header structure\n");

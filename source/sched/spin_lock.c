@@ -108,14 +108,19 @@ spin_rlock (spinlocker_t *mutex)
     return 0;
   volatile pthread_t acthread = pthread_self ();
 
+  if (!mutex->owner_thread)
+    mutex->owner_thread = acthread;
+
   while (!endf)
     {
-      if (mutex->owner_thread != 0 && mutex->owner_thread != acthread)
+      if (mutex->owner_thread != 0 && mutex->owner_thread == acthread)
         {
-
-          spin_wait (mutex);
-          mutex->owner_thread = acthread;
+          endf = true;
+          break;
         }
+
+      spin_wait (mutex);
+      mutex->owner_thread = acthread;
     }
 
   return spin_rtrylock (mutex);

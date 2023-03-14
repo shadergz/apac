@@ -64,9 +64,13 @@ typedef struct spinlocker
 typedef struct schedthread
 {
   u32 thread_id;
+  pthread_t thread_handler;
   const char *thread_name;
+  const char *context_name;
 
-  const char *echo_message;
+  _Atomic bool executing;
+
+  char *echo_message;
   u64 echo_size;
 
   pid_t native_tid;
@@ -75,7 +79,15 @@ typedef struct schedthread
 
 typedef struct schedgov
 {
-  vecdie_t *thread_info_vec;
+  vecdie_t *threads_info;
+
+  pthread_attr_t *thread_attrs;
+  sigset_t thread_dflt;
+
+  u8 threads_count;
+  u8 cores;
+  spinlocker_t mutex;
+
 } schedgov_t;
 
 typedef struct storage_dirio
