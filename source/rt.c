@@ -95,7 +95,7 @@ thread_segv_handler (int signum, siginfo_t *info, void *context)
       = (const register_t *)prog_context->uc_mcontext.regs;
 #endif
 
-  dyninfo_t retr = {};
+  dlinfo_t retr = {};
 
   const char *possible = dyn_getsymbolname ((void *)PC, &retr);
   if (possible != NULL)

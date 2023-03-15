@@ -6,7 +6,7 @@
 #include <strhandler.h>
 
 i32
-dyn_getinfo (const void *addr, dyninfo_t *fill)
+dyn_getinfo (const void *addr, dlinfo_t *fill)
 {
   if (addr == NULL || fill == NULL)
     return -1;
@@ -53,7 +53,7 @@ dyn_loadsymbol (external_module_t handle, const char *loadsym)
 }
 
 const char *
-dyn_getsymbolname (const void *addr, dyninfo_t *fill)
+dyn_getsymbolname (const void *addr, dlinfo_t *fill)
 {
   if (addr == NULL || fill == NULL)
     return NULL;

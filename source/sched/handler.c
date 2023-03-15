@@ -87,7 +87,7 @@ sched_stop (apac_ctx_t *apac_ctx)
 {
   schedgov_t *gov = apac_ctx->governor;
 
-  while (1)
+  while (true)
     {
       thread_sleepby (10, THREAD_SLEEPCONV_MILI);
       spin_rlock (&gov->mutex);

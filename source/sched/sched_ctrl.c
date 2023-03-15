@@ -1,6 +1,9 @@
 
 #include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #include <pthread.h>
 #include <signal.h>
@@ -77,9 +80,13 @@ typedef struct sigaction native_sigaction_t;
 static i32
 sched_installsig (schedgov_t *governor)
 {
-
+#if defined(__ANDROID__)
+  static native_sigaction_t action
+      = { .sa_handler = worker_killsig, .sa_flags = 0 };
+#else
   static native_sigaction_t action
       = { .sa_handler = worker_killsig, .sa_flags = SA_INTERRUPT };
+#endif
   sigemptyset (&action.sa_mask);
   sigaddset (&action.sa_mask, SIGUSR1);
   pthread_sigmask (SIG_UNBLOCK, (const sigset_t *)&action.sa_mask,
@@ -95,15 +102,15 @@ sched_set_ss (apac_ctx_t *apac_ctx)
 {
   schedgov_t *gov = apac_ctx->governor;
 
-#if defined(__linux__)
-  const u32 pages = getpagesize ();
-#else
+#if defined(__ANDROID__)
   const u32 pages = sysconf (_SC_PAGESIZE);
+#elif (__linux__)
+  const u32 pages = getpagesize ();
 #endif
 
   pthread_attr_setstacksize (gov->thread_attrs, pages * 8);
   echo_info (apac_ctx,
-             "Thread's stack size will be maximized to x.8, where X "
+             "Thread's stack size will be maximized to X.8, where X "
              "is _SC_PAGESIZE (%u)\n",
              pages * 8);
 

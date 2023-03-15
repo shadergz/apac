@@ -8,6 +8,8 @@
 #include <echo/fmt.h>
 #include <thread/sleep.h>
 
+#include <debug_extra.h>
+
 void
 worker_killsig (i32 thrsig)
 {
@@ -26,6 +28,7 @@ worker_entry (void *apac_ptr)
   schedgov_t *gov = apac_ctx->governor;
 
   spin_rlock (&gov->mutex);
+  // DEBUG_DUMP_STRUCT(gov->mutex);
 
   schedthread_t *self = sched_find (0, apac_ctx);
   sched_configure (self, apac_ctx);
@@ -40,7 +43,7 @@ worker_entry (void *apac_ptr)
   spin_runlock (&gov->mutex);
 
   echo_success (apac_ctx,
-                "Thread (%s) with id %lu was started\t[\e[0;32mON\e[0m]\n",
+                "Thread (%8s) with id %lu was started [\e[0;32mON\e[0m]\n",
                 self->thread_name, self->thread_handler);
 
   for (;;)

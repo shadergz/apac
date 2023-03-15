@@ -62,7 +62,7 @@ scalar_cpuname (char *cpu_nb, u64 cpu_nsz)
 #define PROC_BUFFER_MAX_SZ 0x320
 #endif
 
-  char *proc_buffer = apmalloc (sizeof (char) * PROC_BUFFER_MAX_SZ);
+  char *proc_buffer = (char *)apmalloc (sizeof (char) * PROC_BUFFER_MAX_SZ);
   if (proc_buffer == NULL)
     return -1;
 

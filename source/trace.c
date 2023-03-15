@@ -72,7 +72,7 @@ trace_dump (void *captured_frame[], void *user, traceprint_t print_trace,
 
   u64 frame_idx;
 
-  dyninfo_t dlproc = {};
+  dlinfo_t dlproc = {};
 
   dyn_getinfo ((void *)trace_dump, &dlproc);
   print_trace (0, false, user, "%s", dlproc.dli_fname, dlproc.dli_fbase);

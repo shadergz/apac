@@ -117,7 +117,7 @@ session_makestorage (apac_ctx_t *apac_ctx)
   char *exec_dir = NULL;
   run_getedir (&exec_dir, DIRIO_MAXPATH_SZ);
 
-  echo_info (apac_ctx, "Binary apac being executed inside of %s\n", exec_dir);
+  echo_info (apac_ctx, "Binary ./apac being executed inside %s\n", exec_dir);
 
   const i32 tree_ret = tree_makeroot (".", apac_ctx);
 

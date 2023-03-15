@@ -1,6 +1,7 @@
 #ifndef APAC_API_H
 #define APAC_API_H
 
+#include <signal.h>
 #include <stdatomic.h>
 #include <stdbool.h>
 #include <stdint.h>
