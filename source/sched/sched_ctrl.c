@@ -10,9 +10,10 @@
 
 #include <sched/gov.h>
 
-#include <cyclic_hw.h>
 #include <memctrlext.h>
 #include <vec.h>
+
+#include <sched/spin_lock.h>
 
 #include <echo/fmt.h>
 
@@ -89,6 +90,26 @@ sched_installsig (schedgov_t *governor)
   return 0;
 }
 
+static i32
+sched_set_ss (apac_ctx_t *apac_ctx)
+{
+  schedgov_t *gov = apac_ctx->governor;
+
+#if defined(__linux__)
+  const u32 pages = getpagesize ();
+#else
+  const u32 pages = sysconf (_SC_PAGESIZE);
+#endif
+
+  pthread_attr_setstacksize (gov->thread_attrs, pages * 8);
+  echo_info (apac_ctx,
+             "Thread's stack size will be maximized to x.8, where X "
+             "is _SC_PAGESIZE (%u)\n",
+             pages * 8);
+
+  return 0;
+}
+
 i32
 sched_init (apac_ctx_t *apac_ctx)
 {
@@ -99,10 +120,11 @@ sched_init (apac_ctx_t *apac_ctx)
   gov->threads_info = (vecdie_t *)apmalloc (sizeof (vecdie_t));
   gov->thread_attrs = (pthread_attr_t *)apmalloc (sizeof (pthread_attr_t));
 
-  memset (&gov->mutex, 0, sizeof (gov->mutex));
+  spin_init (&gov->mutex);
 
 #define SCHED_DEF_THREAD_CNT 8
   pthread_attr_init (gov->thread_attrs);
+  sched_set_ss (apac_ctx);
 
   const i32 vec_ret = vec_init (sizeof (schedthread_t), SCHED_DEF_THREAD_CNT,
                                 gov->threads_info);
@@ -136,38 +158,36 @@ sched_init (apac_ctx_t *apac_ctx)
 }
 
 schedthread_t *
-sched_find (u32 thread, apac_ctx_t *apac_ctx)
+sched_find (pthread_t thread, apac_ctx_t *apac_ctx)
 {
   if (apac_ctx == NULL)
     return NULL;
 
-  const schedgov_t *gov = apac_ctx->governor;
+  schedgov_t *gov = apac_ctx->governor;
 
   if (thread == 0)
     thread = pthread_self ();
-  const u32 search_id = cyclic32_checksum (&thread, sizeof (u32));
+
+  spin_rlock (&gov->mutex);
+  vec_reset (gov->threads_info);
+  schedthread_t *ret = NULL;
 
   for (schedthread_t *thinfo = NULL;
-       (thinfo = vec_next (gov->threads_info)) != NULL;)
+       (thinfo = vec_next (gov->threads_info)) != NULL && !ret;)
     {
-
-      if (thinfo->thread_id != search_id
-          && thinfo->thread_id != THREAD_ID_DEFAULT_VALUE)
+      if (thinfo->thread_handler != thread)
         continue;
-
-      vec_reset (gov->threads_info);
-      return thinfo;
+      ret = thinfo;
     }
 
+  spin_runlock (&gov->mutex);
   vec_reset (gov->threads_info);
-  return NULL;
+  return ret;
 }
 
 static const char *s_thread_name[]
-    = { "Abigail", "Yone",    "Remu",     "Sara",
-        "Mary",    "Pandora", "Beatrice", "Emilia",
-
-        NULL };
+    = { "Abigail", "Yone",     "Remu",   "Sara", "Mary",
+        "Pandora", "Beatrice", "Emilia", "Lain", NULL };
 
 #define THREAD_NSIZE sizeof (s_thread_name) / sizeof (const char *)
 
@@ -210,16 +230,12 @@ sched_configure (schedthread_t *thinfo, apac_ctx_t *apac_ctx)
   thinfo->native_tid = gettid ();
   thinfo->core_owner = sched_getcpu ();
 
-  thinfo->thread_id
-      = cyclic32_checksum (&thinfo->thread_handler, sizeof (i32));
-
   return 0;
 }
 
 i32
-sched_cleanups (schedthread_t *thread, apac_ctx_t *apac_ctx)
+sched_cleanup (schedthread_t *thread, apac_ctx_t *apac_ctx)
 {
-
   if (thread->thread_name)
     thread->thread_name = NULL;
   if (thread->echo_message)
@@ -256,6 +272,8 @@ sched_deinit (apac_ctx_t *apac_ctx)
   pthread_attr_destroy (gov->thread_attrs);
   if (gov->thread_attrs)
     apfree (gov->thread_attrs);
+
+  spin_deinit (&gov->mutex);
 
   return 0;
 }

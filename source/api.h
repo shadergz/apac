@@ -55,7 +55,8 @@ typedef struct spinlocker
 {
   /* Our dedicated atomic variable by the way, using explicitly
    * the atomic keyword! */
-  atomic_flag spin;
+  atomic_flag locked;
+
   _Atomic u32 recursive_lcount;
   _Atomic pthread_t owner_thread;
 
@@ -63,7 +64,6 @@ typedef struct spinlocker
 
 typedef struct schedthread
 {
-  u32 thread_id;
   pthread_t thread_handler;
   const char *thread_name;
   const char *context_name;
@@ -84,7 +84,7 @@ typedef struct schedgov
   pthread_attr_t *thread_attrs;
   sigset_t thread_dflt;
 
-  u8 threads_count;
+  _Atomic u8 threads_count;
   u8 cores;
   spinlocker_t mutex;
 

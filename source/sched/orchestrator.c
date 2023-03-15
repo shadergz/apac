@@ -32,23 +32,19 @@ orchestra_die (schedthread_t *thread, apac_ctx_t *apac_ctx)
                   thread->thread_handler, thread->thread_name);
     }
 
-  // Detaching all thread's resource, if there's one!
-  pthread_detach (thread->thread_handler);
-
   schedgov_t *gov = apac_ctx->governor;
+
+  // Detaching all thread's resource, if there's one!
+  pthread_join (thread->thread_handler, NULL);
 
   spin_rlock (&gov->mutex);
   gov->threads_count--;
-
-  echo_success (apac_ctx, "Thread %s with id %u has detached\n",
-                thread->thread_name, thread->thread_id);
   spin_runlock (&gov->mutex);
 
-  // This can be done outside the thread, we can kill the thread and after
-  // remove it's data
-  const i32 cc = sched_cleanups (thread, apac_ctx);
+  echo_success (apac_ctx, "Thread %s with id %lu has detached\n",
+                thread->thread_name, thread->thread_handler);
 
-  return cc;
+  return 0;
 }
 
 i32

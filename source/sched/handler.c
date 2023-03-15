@@ -64,10 +64,12 @@ sched_start (apac_ctx_t *apac_ctx)
   // Minus (1) cause we already have a thread being executed (us!, doooh)
   for (thread_created = 0; thread_created < cores_count - 1; thread_created++)
     {
+      spin_rlock (&scheduler->mutex);
       schedthread_t *newth = vec_emplace (scheduler->threads_info);
-      newth->thread_id = THREAD_ID_DEFAULT_VALUE;
 
       const i32 orret = orchestra_spawn (newth, apac_ctx);
+      spin_runlock (&scheduler->mutex);
+
       echo_debug (apac_ctx, "New thread has created in %p\n", newth);
 
       if (orret != 0)
@@ -93,11 +95,14 @@ sched_stop (apac_ctx_t *apac_ctx)
       u8 threads = gov->threads_count;
       u8 cores = gov->cores;
 
-      spin_runlock (&gov->mutex);
-
       if (threads == cores)
         break;
+
+      spin_runlock (&gov->mutex);
     }
+
+  echo_success (apac_ctx, "Thereads created: %d, threads running %d\n",
+                gov->threads_count, gov->cores);
 
   const u8 thread_count = vec_capacity (gov->threads_info);
 
@@ -108,9 +113,13 @@ sched_stop (apac_ctx_t *apac_ctx)
     {
       schedthread_t *thXX = vec_next (gov->threads_info);
       orchestra_die (thXX, apac_ctx);
+      /* This can be done outside the thread, we can kill the thread and after
+       * remove it's data! */
+      sched_cleanup (thXX, apac_ctx);
     }
 
-  sched_cleanups (main_thread, apac_ctx);
+  sched_cleanup (main_thread, apac_ctx);
+  spin_runlock (&gov->mutex);
 
   return 0;
 }

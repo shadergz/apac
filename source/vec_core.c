@@ -49,7 +49,7 @@ vec_next (vecdie_t *vec)
 {
   u64 skip_bytes = vec->vec_dsize * vec->vec_cursor++;
 
-  if (skip_bytes > vec->vec_dsize * vec->vec_used)
+  if (skip_bytes >= vec->vec_dsize * vec->vec_used)
     return NULL;
 
   return (void *)((u8 *)vec->vec_dynamic + skip_bytes);

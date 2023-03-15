@@ -23,19 +23,25 @@ worker_entry (void *apac_ptr)
   if (!apac_ctx)
     pthread_exit (NULL);
 
+  schedgov_t *gov = apac_ctx->governor;
+
+  spin_rlock (&gov->mutex);
+
   schedthread_t *self = sched_find (0, apac_ctx);
   sched_configure (self, apac_ctx);
+
+  echo_assert (apac_ctx, self->executing == 0, "Thread is already executing!");
+  self->executing = true;
 
   // We can change the thread name more than once inside contexts
   sched_setname (self->thread_name, apac_ctx);
 
-  schedgov_t *gov = apac_ctx->governor;
-  spin_rlock (&gov->mutex);
   gov->threads_count++;
-
-  echo_success (apac_ctx, "Thread (%s) with id %u was started *\n",
-                self->thread_name, self->thread_id);
   spin_runlock (&gov->mutex);
+
+  echo_success (apac_ctx,
+                "Thread (%s) with id %lu was started\t[\e[0;32mON\e[0m]\n",
+                self->thread_name, self->thread_handler);
 
   for (;;)
     thread_sleepby (100, THREAD_SLEEPCONV_SECONDS);
