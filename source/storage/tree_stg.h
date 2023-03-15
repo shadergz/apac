@@ -1,5 +1,5 @@
-#ifndef APAC_STORAGE_TREE_H
-#define APAC_STORAGE_TREE_H
+#ifndef APAC_STORAGE_TREE_STG_H
+#define APAC_STORAGE_TREE_STG_H
 
 #include <api.h>
 

@@ -9,8 +9,8 @@
 #include <locker.h>
 #include <memctrlext.h>
 #include <rt.h>
-#include <storage/dirio.h>
-#include <storage/tree.h>
+#include <storage/dirhandler.h>
+#include <storage/tree_stg.h>
 
 #include <backend_space.h>
 #include <doubly_int.h>

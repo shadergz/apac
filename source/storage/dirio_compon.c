@@ -1,7 +1,7 @@
 #include <string.h>
 
 #include <memctrlext.h>
-#include <storage/dirio.h>
+#include <storage/dirhandler.h>
 
 #include <fcntl.h>
 #include <unistd.h>

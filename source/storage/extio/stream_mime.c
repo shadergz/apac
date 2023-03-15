@@ -2,7 +2,7 @@
 
 #include <memctrlext.h>
 
-#include <storage/fio.h>
+#include <storage/fhandler.h>
 
 #include <storage/extio/stream_mime.h>
 

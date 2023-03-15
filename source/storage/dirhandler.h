@@ -1,5 +1,5 @@
-#ifndef APAC_STORAGE_DIRIO_H
-#define APAC_STORAGE_DIRIO_H
+#ifndef APAC_STORAGE_DIRHANDLER_H
+#define APAC_STORAGE_DIRHANDLER_H
 
 #include <api.h>
 

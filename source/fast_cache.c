@@ -1,16 +1,17 @@
+#include <stdio.h>
 #include <string.h>
 #include <time.h>
 
 #include <fast_cache.h>
 
 #include <storage/extio/advise.h>
-#include <storage/fio.h>
+#include <storage/fhandler.h>
 
 #include <doubly_int.h>
 #include <echo/fmt.h>
 
 #include <memctrlext.h>
-#include <storage/tree.h>
+#include <storage/tree_stg.h>
 
 typedef struct tm native_time_t;
 
@@ -45,17 +46,28 @@ cache_dump_info (apac_ctx_t *apac_ctx)
 static cache_entry_t *
 cache_readent (storage_fio_t *driver, fast_cache_t *cache)
 {
+#define ENTRY_AUX_BSZ sizeof (typeof (cache_entry_t))
+  u8 entry_aux[ENTRY_AUX_BSZ];
 
   cache_entry_t *ent = NULL;
 
-  fio_read (driver, cache->aux_cache, sizeof cache->aux_cache);
-
   const off_t file_local = fio_seekbuffer (driver, 0, FIO_SEEK_CURSOR);
-  fio_advise (driver, file_local, sizeof cache->aux_cache, FIO_ADVISE_ENTIRE);
+  fio_read (driver, entry_aux, sizeof entry_aux);
 
-  ent = (cache_entry_t *)cache->aux_cache;
+  ent = (cache_entry_t *)entry_aux;
+  if (ent->stream_size == 0)
+    return NULL;
+  fio_advise (driver, file_local, ent->stream_size, FIO_ADVISE_ENTIRE);
 
-  return ent;
+  cache_entry_t *rentry = (cache_entry_t *)apmalloc (
+      sizeof (cache_entry_t) + explicit_align (ent->stream_size, 2));
+  if (!rentry)
+    return NULL;
+
+  memmove (rentry, ent, sizeof (*ent));
+  fio_read (driver, rentry + sizeof (*rentry), ent->stream_size);
+
+  return rentry;
 }
 
 u64
@@ -98,20 +110,16 @@ cache_reload (apac_ctx_t *apac_ctx)
   for (; eidx < header->entries_count; eidx++)
     {
       cache_entry_t *entity = cache_readent (driver, cache);
-      cache_entry_t *dnode
-          = apmalloc (sizeof (u8) * entity->stream_size + sizeof *entity - 8);
-
-      if (__builtin_expect (dnode != NULL, 0))
+      if (entity == NULL)
         {
           echo_error (apac_ctx,
-                      "Can't allocate a node for a "
-                      "cache entry in position %lu\n",
+                      "Can't allocate a node for a cache entry in "
+                      "position %lu\n",
                       eidx);
-          eidx = -1;
-          break;
+          return 0;
         }
 
-      doubly_insert (dnode, cache->entries);
+      doubly_insert (entity, cache->entries);
     }
 
   return eidx;
@@ -162,6 +170,18 @@ cache_sync (apac_ctx_t *apac_ctx)
   fio_ondisk (driver, 0, sizeof *header, FIO_ONDISK_PREALLOCATE);
 
   fio_write (driver, header, sizeof *header);
+
+  // Truncating the file at the end of cache header
+  if (fio_get (driver, FIO_GET_ONDISK_SIZE) > sizeof *header)
+    {
+      const off_t fcurr = fio_get (driver, FIO_GET_ONDISK_SIZE);
+
+      fio_ondisk (driver, 0, fcurr, FIO_ONDISK_TRUNCATE);
+    }
+
+  doubly_reset (cache->entries);
+  for (cache_entry_t *ne = NULL; (ne = doubly_next (cache->entries));)
+    fio_write (driver, ne, sizeof *ne + ne->stream_size);
 
   return 0;
 }

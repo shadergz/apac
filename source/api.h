@@ -325,11 +325,7 @@ typedef struct fast_cache
 {
   cache_header_t *header;
   doublydie_t *entries;
-
-#define CACHE_AUX_BSZ (sizeof (typeof (cache_entry_t)) + 256)
-
   u8 *cache_ptr;
-  u8 aux_cache[CACHE_AUX_BSZ];
 
 } fast_cache_t;
 

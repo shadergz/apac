@@ -4,10 +4,10 @@
 
 #include <layer.h>
 #include <memctrlext.h>
-#include <storage/dirio.h>
+#include <storage/dirhandler.h>
 
-#include <storage/fio.h>
-#include <storage/tree.h>
+#include <storage/fhandler.h>
+#include <storage/tree_stg.h>
 
 #include <echo/fmt.h>
 

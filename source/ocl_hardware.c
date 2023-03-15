@@ -4,7 +4,7 @@
 #include <stddef.h>
 
 #include <echo/fmt.h>
-#include <storage/fio.h>
+#include <storage/fhandler.h>
 
 #define AP_LOAD_FUNC(ctx, ptr, sym_name, sym_type, lib_name, onerr)           \
   do                                                                          \
