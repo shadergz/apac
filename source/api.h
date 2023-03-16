@@ -63,9 +63,33 @@ typedef struct spinlocker
 
 } spinlocker_t;
 
+typedef enum natural_color
+{
+  NATURAL_COLOR_GREEN,
+  NATURAL_COLOR_RED,
+  NATURAL_COLOR_YELLOW,
+  NATURAL_COLOR_ORANGE
+} natural_color_e;
+
+typedef enum thread_metrics
+{
+  THREAD_METRICS_HIGH_PERFORMANCE,
+  THREAD_METRICS_MID_PERFORMANCE,
+  THREAD_METRICS_LOW_PERFORMANCE
+} thread_metrics_e;
+
+typedef struct threadscore
+{
+  natural_color_e thread_color;
+  thread_metrics_e metrics;
+
+} threadscore_t;
+
 typedef struct schedthread
 {
   pthread_t thread_handler;
+  threadscore_t score;
+
   const char *thread_name;
   const char *context_name;
 

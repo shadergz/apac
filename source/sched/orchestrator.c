@@ -41,7 +41,7 @@ orchestra_die (schedthread_t *thread, apac_ctx_t *apac_ctx)
   gov->threads_count--;
   spin_runlock (&gov->mutex);
 
-  echo_success (apac_ctx, "Thread %s with id %lu has detached\n",
+  echo_success (apac_ctx, "Thread (%s) with id %lu has detached\n",
                 thread->thread_name, thread->thread_handler);
 
   return 0;

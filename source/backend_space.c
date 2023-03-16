@@ -62,7 +62,7 @@ load_now:
   echo_info (apac_ctx,
              "There's a OpenCL driver located at %s, "
              "trying to load it!\n",
-             core->ocl_shared->file_name);
+             core->ocl_shared->file_path);
 
   bret = ocl_init (apac_ctx);
   if (bret != 0)
@@ -98,7 +98,8 @@ i32
 back_init (apac_ctx_t *apac_ctx)
 {
   backend_ctx_t *core = apac_ctx->core_backend;
-  core->ocl_interface = apmalloc (sizeof (*core->ocl_interface));
+  core->ocl_interface
+      = (opencl_int_t *)apmalloc (sizeof (*core->ocl_interface));
   if (core->ocl_interface == NULL)
     return -1;
 

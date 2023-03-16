@@ -9,6 +9,7 @@
 #include <thread/sleep.h>
 
 #include <debug_extra.h>
+#include <strplus.h>
 
 void
 worker_killsig (i32 thrsig)
@@ -28,7 +29,7 @@ worker_entry (void *apac_ptr)
   schedgov_t *gov = apac_ctx->governor;
 
   spin_rlock (&gov->mutex);
-  // DEBUG_DUMP_STRUCT(gov->mutex);
+  DEBUG_DUMP_STRUCT (gov->mutex);
 
   schedthread_t *self = sched_find (0, apac_ctx);
   sched_configure (self, apac_ctx);
@@ -42,9 +43,14 @@ worker_entry (void *apac_ptr)
   gov->threads_count++;
   spin_runlock (&gov->mutex);
 
+#define THNAME_BSZ 10
+  char thname[THNAME_BSZ] = {};
+
   echo_success (apac_ctx,
-                "Thread (%8s) with id %lu was started [\e[0;32mON\e[0m]\n",
-                self->thread_name, self->thread_handler);
+                "Thread (%s) with id %lu was started [\e[0;32mON\e[0m]\n",
+                strplus_padding (thname, self->thread_name, sizeof thname, '~',
+                                 PADDING_MODE_END),
+                self->thread_handler);
 
   for (;;)
     thread_sleepby (100, THREAD_SLEEPCONV_SECONDS);

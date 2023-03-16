@@ -4,8 +4,9 @@ add_subdirectory(storage)
 add_subdirectory(sched)
 
 target_sources(apac PRIVATE 
-	main_thread.c 
+	main_thread.c
 
+	strplus.c
 	strhandler.c
 	layer.c
 	rt.c

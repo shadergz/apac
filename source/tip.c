@@ -26,7 +26,7 @@ tip_ocl_driver (const char *tip_driver)
         NULL,
         "If you are on Termux, you must set "
         "LD_LIBRARY_PATH to something like this: "
-        "`export LD_LIBRARY_PATH=/system/vendor/lib64:$LD_LIBRARY_PATH`");
+        "`export LD_LIBRARY_PATH=/system/vendor/lib64:$LD_LIBRARY_PATH`\n");
 #endif
   }
 }
