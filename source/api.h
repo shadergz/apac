@@ -201,12 +201,37 @@ typedef struct echo_ctx
 
 typedef struct config_user
 {
-  const char *default_input;
-  const char *default_output;
+  struct
+  {
+    // [main]
+    const char *default_scenario;
+    const char *config_filename;
+    const char *interface;
 
-  const char *exec_script;
-  const char *structure_model;
+    u8 max_thread;
+    bool user_max_cpu;
+    u64 max_filesize;
+  };
 
+  struct
+  {
+    // [input]
+    const char *default_input;
+  };
+
+  struct
+  {
+    // [output]
+    const char *default_output;
+  };
+
+  struct
+  {
+    // [packages]
+    const char *exec_script;
+    const char *limit_minimum_supported_api;
+    const char *structure_model;
+  };
 } config_user_t;
 
 typedef void *external_module_t;

@@ -13,11 +13,11 @@ affinity_setnice (i32 nice, pthread_t thid)
 
   native_sched_parameters_t core_params = {};
   if (!thid)
-    thid = sched_getcpu ();
+    thid = pthread_self ();
 
   i32 po_ticpu = 0;
   pthread_getschedparam (thid, &po_ticpu, &core_params);
-  if (core_params.sched_priority)
+  if (!core_params.sched_priority)
     {
       echo_info (NULL,
                  "Affinity: Nice of thread %lu is "
