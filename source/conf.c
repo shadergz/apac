@@ -21,7 +21,7 @@ conf_init (apac_ctx_t *apac_ctx)
   configs->exec_script = "decode.asc";
   configs->structure_model = "APKTOOL";
   configs->user_max_cpu = false;
-  configs->max_thread = CONFIG_DEFAULT_THREAD_MAX;
+  configs->max_thread = CONFIG_DEFAULT_MAX_THREAD_MIN;
 
   configs->confsetexpr = (regex_t *)apmalloc (sizeof (regex_t));
 

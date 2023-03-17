@@ -127,17 +127,15 @@ main (i32 argc, char **argv)
     {
       echo_error (apac_main, "Can't setup the main core thread name, "
                              "the scheduler wasn't activated!\n");
+      apfree (apac_main);
       return sched;
     }
 
   const i32 sinit = session_init (argc, argv, apac_main);
-  if (sinit != 0)
+  if (sinit == -1)
     {
-      if (sinit == -1)
-        {
-          echo_error (apac_main, "Session starting was failed, "
-                                 "killing the process...\n");
-        }
+      echo_error (apac_main, "Session starting was failed, "
+                             "killing the process...\n");
       session_deinit (apac_main);
       goto going_out;
     }

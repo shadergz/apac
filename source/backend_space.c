@@ -1,3 +1,4 @@
+
 #include <stddef.h>
 #include <stdio.h>
 
@@ -14,7 +15,7 @@ static i32
 back_load_ocl (apac_ctx_t *apac_ctx)
 {
   backend_ctx_t *core = apac_ctx->core_backend;
-  core->ocl_shared = apmalloc (sizeof (storage_fio_t));
+  core->ocl_shared = (storage_fio_t*)apmalloc (sizeof (storage_fio_t));
 
   opencl_int_t *interface = core->ocl_interface;
   interface->ocl_driver = NULL;

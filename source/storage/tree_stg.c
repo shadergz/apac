@@ -24,8 +24,8 @@ tree_makeroot (const char *relative, apac_ctx_t *apac_ctx)
   memset (root, 0, sizeof (storage_tree_t));
   root->node_level = 0;
 
-  storage_dirio_t *dir = apmalloc (sizeof (storage_dirio_t));
-  root->leafs = apmalloc (sizeof (doublydie_t));
+  storage_dirio_t *dir = (storage_dirio_t*)apmalloc (sizeof (storage_dirio_t));
+  root->leafs = (doublydie_t*)apmalloc (sizeof (doublydie_t));
   doubly_init (root->leafs);
 
   tree_open_dir (dir, relative, apac_ctx);
@@ -60,7 +60,7 @@ tree_detach_file (storage_tree_t *from, const char *restrict relative,
 {
   *in = NULL;
 
-  char *file_relative;
+  char *file_relative = NULL;
 
   for (storage_tree_t *next = NULL;
        (next = doubly_next (from->leafs)) != NULL;)
@@ -133,9 +133,9 @@ tree_open_dir (storage_dirio_t *place, const char *user_path,
   if (dirio != 0)
     {
       echo_error (apac_ctx,
-                  "Can't open a directory (%s) inside the tree "
+                  "Can't open a directory with (%s) inside the tree "
                   "(%s)\n",
-                  user_path, dirio_getname (dir_put->node_dir));
+                  user_path, dir_put->node_dir->dir_path);
       return dirio;
     }
 

@@ -77,6 +77,7 @@ sched_start (apac_ctx_t *apac_ctx)
       if (orret != 0)
         {
           echo_error (apac_ctx, "Can't creates a new thread in %p\n", newth);
+          break;
         }
     }
 

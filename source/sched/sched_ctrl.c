@@ -132,11 +132,11 @@ sched_init (apac_ctx_t *apac_ctx)
 
   pthread_attr_init (gov->thread_attrs);
   sched_set_ss (apac_ctx);
-
-  const i32 vec_ret = vec_init (sizeof (schedthread_t),
-                                CONFIG_DEFAULT_THREAD_MAX, gov->threads_info);
-
   const u8 ccpu = super_getcores ();
+
+  const i32 vec_ret
+      = vec_init (sizeof (schedthread_t), ccpu, gov->threads_info);
+
   echo_assert (apac_ctx, ccpu > 0,
                "Pool: invalid count of cores, "
                "this must be reported!\n");
@@ -265,6 +265,13 @@ sched_deinit (apac_ctx_t *apac_ctx)
 
   if (!gov->threads_info)
     return 0;
+
+  spin_rlock (&gov->mutex);
+  vec_reset (gov->threads_info);
+
+  schedthread_t *thisth = vec_next (gov->threads_info);
+  sched_cleanup (thisth, apac_ctx);
+  spin_runlock (&gov->mutex);
 
   /* Removing the entire thread data list, at this point, just only a thread
    * must exist */

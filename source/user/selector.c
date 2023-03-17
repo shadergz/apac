@@ -12,7 +12,7 @@ i32
 select_move (apac_ctx_t *apac_ctx)
 {
   session_ctx_t *current = apac_ctx->user_session;
-  rule_selector_t *nsel = apmalloc (sizeof (rule_selector_t));
+  rule_selector_t *nsel = (rule_selector_t*)apmalloc (sizeof (rule_selector_t));
   memset (nsel, 0, sizeof *nsel);
 
   if (!nsel)

@@ -6,10 +6,13 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-const char *
-dirio_getname (storage_dirio_t *dir)
+i32
+dirio_rewind (storage_dirio_t *dir)
 {
-  return dir->dir_path;
+  if (dir->dir_fd < 3)
+    return -1;
+  return dir->buf_pos = dir->buf_end = dir->position
+         = lseek (dir->dir_fd, 0, SEEK_SET);
 }
 
 i32
@@ -40,15 +43,6 @@ dirio_open (const char *path, const char *perms, storage_dirio_t *dir)
     }
 
   return 0;
-}
-
-i32
-dirio_rewind (storage_dirio_t *dir)
-{
-  if (dir->dir_fd < 3)
-    return -1;
-  return dir->buf_pos = dir->buf_end = dir->position
-         = lseek (dir->dir_fd, 0, SEEK_SET);
 }
 
 u64

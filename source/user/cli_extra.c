@@ -3,22 +3,25 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <default.h>
 #include <memctrlext.h>
-#include <strings.h>
+
 #include <user/cli.h>
 
 #include <echo/fmt.h>
 
-#define NOTIN_RANGE(setname, value, min, max, ret)                            \
-  if (!(value > min && value < max))                                          \
-    do                                                                        \
-      {                                                                       \
-        echo_error (NULL,                                                     \
-                    "Can sets %s new value, because %u is outside the "       \
-                    "range!\n\tMin value: %u; Max value: %u\n",               \
-                    setname, value, min, max);                                \
-        return ret;                                                           \
-      }                                                                       \
+#define NOTIN_RANGE(setname, value, min, max, jumpto)                         \
+  do                                                                          \
+    {                                                                         \
+      if (value < min || value > max)                                         \
+        {                                                                     \
+          echo_error (NULL,                                                   \
+                      "Can sets %s new value, because %u is outside the "     \
+                      "range!\n\tMin value: %u; Max value: %u\n",             \
+                      setname, value, min, max);                              \
+          goto jumpto;                                                        \
+        }                                                                     \
+    }                                                                         \
   while (0)
 
 #define SEARCH_FIELD(table, field, user_table, user_field)                    \
@@ -49,14 +52,11 @@ config_execute (char *set, config_user_t *cuser)
   if (!svalue)
     goto cleansets;
 
-#define CONFIG_RANGE_THREAD_COUNT_MIN 2
-#define CONFIG_RANGE_THREAD_COUNT_MAX 30
-
-  SEARCH_FIELD ("main", "cpu_threads", set_table, set_field)
+  SEARCH_FIELD ("main", "max_thread", set_table, set_field)
   {
     const u8 thread_cnt = (u8)strtoul (svalue, NULL, 0);
-    NOTIN_RANGE (set_field, thread_cnt, CONFIG_RANGE_THREAD_COUNT_MIN,
-                 CONFIG_RANGE_THREAD_COUNT_MAX, ret);
+    NOTIN_RANGE (set_field, thread_cnt, CONFIG_DEFAULT_MAX_THREAD_MIN,
+                 CONFIG_DEFAULT_MAX_THREAD_MAX, cleansets);
 
     cuser->max_thread = thread_cnt;
   }
@@ -65,7 +65,7 @@ cleansets:
   apfree ((char *)set_table);
   apfree ((char *)set_field);
 
-  return 0;
+  return ret;
 }
 
 i32
