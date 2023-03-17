@@ -253,6 +253,8 @@ session_deinit (apac_ctx_t *apac_ctx)
   tree_close (apac_ctx->root, true);
 
   doubly_deinit (session_user->selectors);
+
+  conf_deinit (apac_ctx);
   apfree (session_user->user_options);
   apfree (session_user->user_config);
   apfree (session_user->selectors);

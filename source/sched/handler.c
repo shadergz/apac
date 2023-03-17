@@ -56,9 +56,11 @@ sched_start (apac_ctx_t *apac_ctx)
   sched_dump_cpuinfo (apac_ctx);
 
   schedgov_t *scheduler = apac_ctx->governor;
-  // Getting from the vector capacity value, cause we already preallocate it
-  // somewhere else
-  u8 cores_count = vec_capacity (scheduler->threads_info);
+  const session_ctx_t *us = apac_ctx->user_session;
+  const config_user_t *conf = us->user_config;
+
+  // Count of threads needed to be spawned
+  const u8 cores_count = conf->max_thread;
 
   i32 thread_created = 0;
   // Minus (1) cause we already have a thread being executed (us!, doooh)

@@ -13,6 +13,7 @@
 
 #include <sched/gov.h>
 
+#include <default.h>
 #include <memctrlext.h>
 #include <vec.h>
 
@@ -129,23 +130,18 @@ sched_init (apac_ctx_t *apac_ctx)
 
   spin_init (&gov->mutex);
 
-#define SCHED_DEF_THREAD_CNT 8
   pthread_attr_init (gov->thread_attrs);
   sched_set_ss (apac_ctx);
 
-  const i32 vec_ret = vec_init (sizeof (schedthread_t), SCHED_DEF_THREAD_CNT,
-                                gov->threads_info);
+  const i32 vec_ret = vec_init (sizeof (schedthread_t),
+                                CONFIG_DEFAULT_THREAD_MAX, gov->threads_info);
 
   const u8 ccpu = super_getcores ();
   echo_assert (apac_ctx, ccpu > 0,
                "Pool: invalid count of cores, "
                "this must be reported!\n");
-  if (ccpu != SCHED_DEF_THREAD_CNT)
-    {
-      vec_resize (ccpu, gov->threads_info);
-    }
-  gov->cores = ccpu;
 
+  gov->cores = ccpu;
   sched_installsig (gov);
 
   schedthread_t *this_thread = vec_emplace (gov->threads_info);

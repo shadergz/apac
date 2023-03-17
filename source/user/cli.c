@@ -100,7 +100,7 @@ cli_get (const char **prog_name, i32 argc, char *argv[],
   for (; opts->option; opts++)
     {
       const char *arg = curr_val;
-      char *value = strrchr (arg, '=');
+      char *value = strchr (arg, '=');
       if (strchr (arg, '-') != NULL)
         {
           arg++;
@@ -204,6 +204,7 @@ static const struct cli_option g_default_cli_args[] = {
   { "select-move", USER_CLI_WOUT_OPT, CLI_PROB_NONE, CLI_ARG_NONE },
   { "select-by-name", USER_CLI_WOUT_OPT, CLI_PROB_REQUIRED, CLI_ARG_STRING },
   { "select", USER_CLI_SELECT, CLI_PROB_REQUIRED, CLI_ARG_INTEGER },
+  { "config-set", USER_CLI_WOUT_OPT, CLI_PROB_REQUIRED, CLI_ARG_STRING },
 
   {}
 };
@@ -244,6 +245,8 @@ user_cli_parser (i32 argc, char *argv[], apac_ctx_t *apac_ctx)
             rstop = select_change (g_option, (u64)g_optvalue, apac_ctx);
           else if (strncmp (g_option, "execute", strlen (g_option)) == 0)
             rstop = select_treat (g_option, g_optvalue, apac_ctx);
+          else if (strncmp (g_option, "config-set", strlen (g_option)) == 0)
+            rstop = config_set (g_option, g_optvalue, apac_ctx);
         }
       if (rstop != 0)
         break;

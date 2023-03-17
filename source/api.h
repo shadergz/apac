@@ -1,6 +1,7 @@
 #ifndef APAC_API_H
 #define APAC_API_H
 
+#include <regex.h>
 #include <signal.h>
 #include <stdatomic.h>
 #include <stdbool.h>
@@ -232,6 +233,8 @@ typedef struct config_user
     const char *limit_minimum_supported_api;
     const char *structure_model;
   };
+
+  regex_t *confsetexpr;
 } config_user_t;
 
 typedef void *external_module_t;

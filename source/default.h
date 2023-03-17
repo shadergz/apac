@@ -1,0 +1,6 @@
+#ifndef APAC_DEFAULT_H
+#define APAC_DEFAULT_H
+
+#define CONFIG_DEFAULT_THREAD_MAX 2
+
+#endif
