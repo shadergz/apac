@@ -24,8 +24,9 @@ tree_makeroot (const char *relative, apac_ctx_t *apac_ctx)
   memset (root, 0, sizeof (storage_tree_t));
   root->node_level = 0;
 
-  storage_dirio_t *dir = (storage_dirio_t*)apmalloc (sizeof (storage_dirio_t));
-  root->leafs = (doublydie_t*)apmalloc (sizeof (doublydie_t));
+  storage_dirio_t *dir
+      = (storage_dirio_t *)apmalloc (sizeof (storage_dirio_t));
+  root->leafs = (doublydie_t *)apmalloc (sizeof (doublydie_t));
   doubly_init (root->leafs);
 
   tree_open_dir (dir, relative, apac_ctx);

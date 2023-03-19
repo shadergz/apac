@@ -32,7 +32,7 @@ typedef struct stream_mime
 
 typedef struct vecdie
 {
-  void *vec_dynamic;
+  u8 *vec_dynamic;
   u64 vec_capa;
   u64 vec_dsize;
   u64 vec_used;
@@ -57,10 +57,10 @@ typedef struct spinlocker
 {
   /* Our dedicated atomic variable by the way, using explicitly
    * the atomic keyword! */
-  atomic_flag locked;
+  _Atomic u32 locker;
 
-  _Atomic u32 recursive_lcount;
-  _Atomic pthread_t owner_thread;
+  _Atomic u32 count;
+  _Atomic pthread_t pid_owner;
 
 } spinlocker_t;
 

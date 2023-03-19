@@ -16,14 +16,14 @@ enum spin_wait_mode
 static i32
 spin_acquire (spinlocker_t *mutex)
 {
-  const i32 mt = atomic_flag_test_and_set (&mutex->locked);
+  const i32 mt = atomic_exchange (&mutex->locker, 1);
   return mt != 0;
 }
 
 static i32
 spin_release (spinlocker_t *mutex)
 {
-  atomic_flag_clear (&mutex->locked);
+  atomic_store (&mutex->locker, 0);
   return 0;
 }
 
@@ -102,12 +102,13 @@ spin_unlock (spinlocker_t *mutex)
 i32
 spin_rtrylock (spinlocker_t *mutex)
 {
-  if (mutex->owner_thread != pthread_self ())
+  pthread_t pself = pthread_self ();
+  if (!pthread_equal (mutex->pid_owner, pself))
     return -1;
 
   if (spin_acquire (mutex) == 0)
     return 0;
-  mutex->recursive_lcount++;
+  mutex->count++;
 
   return 0;
 }
@@ -117,8 +118,8 @@ spin_rlock (spinlocker_t *mutex)
 {
   volatile pthread_t acthread = pthread_self ();
 
-  if (!mutex->owner_thread)
-    mutex->owner_thread = acthread;
+  if (!mutex->pid_owner)
+    mutex->pid_owner = acthread;
 
   if (spin_rtrylock (mutex) == 0)
     return 0;
@@ -126,22 +127,22 @@ spin_rlock (spinlocker_t *mutex)
   do
     {
       spin_wait (mutex, SPIN_WAIT_ACQUIRE);
-      mutex->owner_thread = acthread;
+      mutex->pid_owner = acthread;
     }
-  while (mutex->owner_thread != acthread);
+  while (mutex->pid_owner != acthread);
   return 0;
 }
 
 i32
 spin_rtryunlock (spinlocker_t *mutex)
 {
-  if (!mutex->owner_thread || mutex->owner_thread != pthread_self ())
+  if (!mutex->pid_owner || !pthread_equal (mutex->pid_owner, pthread_self ()))
     return -1;
 
-  if (!mutex->recursive_lcount)
+  if (!mutex->count)
     goto spinclean;
 
-  --mutex->recursive_lcount;
+  --mutex->count;
 
   return 0;
 
@@ -149,9 +150,7 @@ spinclean:
   __attribute__ ((cold));
 
   const i32 sret = spin_release (mutex);
-
-  mutex->owner_thread = (pthread_t)0;
-
+  mutex->pid_owner = (pthread_t)0;
   return sret;
 }
 

@@ -48,7 +48,7 @@ worker_entry (void *apac_ptr)
 
   echo_success (apac_ctx,
                 "Thread (%s) with id %lu was started [\e[0;32mON\e[0m]\n",
-                strplus_padding (thname, self->thread_name, sizeof thname, '~',
+                strplus_padding (thname, self->thread_name, sizeof thname, '*',
                                  PADDING_MODE_END),
                 self->thread_handler);
 

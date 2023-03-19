@@ -27,7 +27,7 @@ layer_vasprintf (char **restrict lstrp, const char *restrict lfmt, va_list lap)
   if (*lstrp != NULL)
     return -1;
 
-  *lstrp = (char*)apmalloc (explicit_align (++needed, 4));
+  *lstrp = (char *)apmalloc (explicit_align (++needed, 4));
   if (*lstrp == NULL)
     return -1;
 

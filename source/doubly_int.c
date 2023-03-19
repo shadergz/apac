@@ -221,7 +221,7 @@ doubly_deinit (doublydie_t *doubly)
 }
 
 i32
-doubly_rm (void *data, doublydie_t *doubly)
+doubly_remove (void *data, doublydie_t *doubly)
 {
   if (doubly->node_data == data && doubly->prev == NULL)
     {

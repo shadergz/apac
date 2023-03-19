@@ -132,6 +132,7 @@ sched_init (apac_ctx_t *apac_ctx)
 
   pthread_attr_init (gov->thread_attrs);
   sched_set_ss (apac_ctx);
+
   const u8 ccpu = super_getcores ();
 
   const i32 vec_ret
@@ -184,7 +185,6 @@ sched_find (pthread_t thread, apac_ctx_t *apac_ctx)
     }
 
   spin_runlock (&gov->mutex);
-  vec_reset (gov->threads_info);
   return ret;
 }
 

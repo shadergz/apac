@@ -7,22 +7,16 @@
 #include <stdatomic.h>
 #include <string.h>
 
-i32 spin_rtryunlock (spinlocker_t *mutex);
-i32 spin_rtrylock (spinlocker_t *mutex);
-
 i32 spin_runlock (spinlocker_t *mutex);
 i32 spin_rlock (spinlocker_t *mutex);
-
-i32 spin_unlock (spinlocker_t *mutex);
-i32 spin_lock (spinlocker_t *mutex);
 
 [[maybe_unused]] static inline i32
 spin_init (spinlocker_t *mutex)
 {
-  atomic_flag_clear (&mutex->locked);
+  atomic_init (&mutex->locker, 0);
 
-  mutex->owner_thread = 0;
-  mutex->recursive_lcount = 0;
+  mutex->pid_owner = 0;
+  mutex->count = 0;
 
   return 0;
 }

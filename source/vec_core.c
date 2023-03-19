@@ -17,7 +17,7 @@ vec_resize (u64 new_capa, vecdie_t *vec)
     return -1;
   if (vec->vec_dynamic == NULL)
     {
-      vec->vec_dynamic = apmalloc (new_capa * vec->vec_dsize);
+      vec->vec_dynamic = (u8 *)apmalloc (new_capa * vec->vec_dsize);
       if (vec->vec_dynamic == NULL)
         return -1;
     }

@@ -22,8 +22,8 @@ native_solve_flags (const char *flags)
       case 'd':
         dir = true;
         break;
-      // This "read" flag is needed when open a directory, this behaviour must
-      // be conserved
+      /* This "read" flag is needed when open a directory, this behaviour must
+       * be conserved! */
       case 'r':
         read = true;
         break;

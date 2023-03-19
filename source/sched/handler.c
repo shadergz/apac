@@ -61,6 +61,8 @@ sched_start (apac_ctx_t *apac_ctx)
 
   // Count of threads needed to be spawned
   const u8 cores_count = conf->max_thread;
+  if (conf->user_max_cpu == false)
+    scheduler->cores = cores_count;
 
   i32 thread_created = 0;
   // Minus (1) cause we already have a thread being executed (us!, doooh)
@@ -115,6 +117,9 @@ sched_stop (apac_ctx_t *apac_ctx)
   for (i32 thidx = 1; thidx < thread_count; thidx++)
     {
       schedthread_t *thXX = vec_next (gov->threads_info);
+      if (!thXX)
+        break;
+
       orchestra_die (thXX, apac_ctx);
       /* This can be done outside the thread, we can kill the thread and after
        * remove it's data! */

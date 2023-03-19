@@ -21,7 +21,7 @@ affinity_setnice (i32 nice, pthread_t thid)
     {
       echo_info (NULL,
                  "Affinity: Nice of thread %lu is "
-                 "under undefined yet!",
+                 "under undefined yet!\n",
                  thid);
     }
 
