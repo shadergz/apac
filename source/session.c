@@ -9,8 +9,8 @@
 #include <locker.h>
 #include <memctrlext.h>
 #include <rt.h>
-#include <storage/dirio.h>
-#include <storage/tree.h>
+#include <storage/dirhandler.h>
+#include <storage/tree_stg.h>
 
 #include <backend_space.h>
 #include <doubly_int.h>
@@ -34,7 +34,7 @@ dsp_help (apac_ctx_t *apac_ctx)
 }
 
 static const char s_apac_version[] = "0.1.5";
-static const char s_apac_rev[] = "a";
+static const char s_apac_rev[] = "a1";
 
 static i32
 dsp_banner (apac_ctx_t *apac_ctx)
@@ -47,8 +47,8 @@ dsp_banner (apac_ctx_t *apac_ctx)
 
   const i32 print_res
       = echo_success (apac_ctx,
-                      "apac (version %s) rev.%s "
-                      "Copyright (C) 2023 the apac's developers\n",
+                      "Apac (version %s) rev.%s "
+                      "Copyright (C) 2023 the Apac's developers\n",
                       s_apac_version, s_apac_rev);
 
   return print_res;
@@ -62,7 +62,7 @@ enable_logsystem (apac_ctx_t *apac_ctx)
 
   if (user->enb_log_system == false)
     {
-      echo_success (apac_ctx, "echo log system was "
+      echo_success (apac_ctx, "Echo log system was "
                               "been disabled for this session!\n");
       return -1;
     }
@@ -117,7 +117,7 @@ session_makestorage (apac_ctx_t *apac_ctx)
   char *exec_dir = NULL;
   run_getedir (&exec_dir, DIRIO_MAXPATH_SZ);
 
-  echo_info (apac_ctx, "Binary apac being executed inside of %s\n", exec_dir);
+  echo_info (apac_ctx, "Binary ./apac being executed inside %s\n", exec_dir);
 
   const i32 tree_ret = tree_makeroot (".", apac_ctx);
 
@@ -216,7 +216,7 @@ session_init (i32 argc, char *argv[], apac_ctx_t *apac_ctx)
   if ((sret = session_lock (apac_ctx) != 0))
     goto lock_failed;
 
-  echo_info (apac_ctx, "Core session was initialized with all components!\n");
+  echo_info (apac_ctx, "Core session has initialized with all components!\n");
 
   goto ret_now;
 
@@ -253,6 +253,8 @@ session_deinit (apac_ctx_t *apac_ctx)
   tree_close (apac_ctx->root, true);
 
   doubly_deinit (session_user->selectors);
+
+  conf_deinit (apac_ctx);
   apfree (session_user->user_options);
   apfree (session_user->user_config);
   apfree (session_user->selectors);

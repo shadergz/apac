@@ -17,6 +17,9 @@ thread_save (char *laststatus, u64 lsize, pthread_t thread_id,
   if (strlen (save) > 15)
     return -1;
 
+  if (!thread_id)
+    thread_id = pthread_self ();
+
 #if defined(__ANDROID__)
 
   prctl (PR_SET_NAME, (u64)laststatus, 0, 0, 0, 0);
@@ -32,6 +35,9 @@ thread_save (char *laststatus, u64 lsize, pthread_t thread_id,
 i32
 thread_restore (pthread_t thread_id, const char *restore)
 {
+  if (!thread_id)
+    thread_id = pthread_self ();
+
   pthread_setname_np (thread_id, restore);
   return 0;
 }

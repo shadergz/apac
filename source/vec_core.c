@@ -17,10 +17,11 @@ vec_resize (u64 new_capa, vecdie_t *vec)
     return -1;
   if (vec->vec_dynamic == NULL)
     {
-      vec->vec_dynamic = apmalloc (new_capa * vec->vec_dsize);
+      vec->vec_dynamic = (u8 *)apmalloc (new_capa * vec->vec_dsize);
       if (vec->vec_dynamic == NULL)
         return -1;
     }
+  vec->vec_capa = new_capa;
 
   return 0;
 }
@@ -48,10 +49,10 @@ vec_next (vecdie_t *vec)
 {
   u64 skip_bytes = vec->vec_dsize * vec->vec_cursor++;
 
-  if (skip_bytes > vec->vec_dsize * vec->vec_used)
+  if (skip_bytes >= vec->vec_dsize * vec->vec_used)
     return NULL;
 
-  return vec->vec_dynamic + skip_bytes;
+  return (void *)((u8 *)vec->vec_dynamic + skip_bytes);
 }
 
 void
@@ -72,7 +73,7 @@ vec_init (u64 item_size, u64 initial_capa, vecdie_t *vec)
       return ret;
     }
 
-  return ret;
+  return 0;
 }
 
 i32

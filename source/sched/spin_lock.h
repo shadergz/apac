@@ -3,16 +3,30 @@
 
 #include <api.h>
 
-i32 spin_rtryunlock (spinlocker_t *mutex);
-i32 spin_rtrylock (spinlocker_t *mutex);
+#include <pthread.h>
+#include <stdatomic.h>
+#include <string.h>
 
 i32 spin_runlock (spinlocker_t *mutex);
 i32 spin_rlock (spinlocker_t *mutex);
 
-i32 spin_tryunlock (spinlocker_t *mutex);
-i32 spin_trylock (spinlocker_t *mutex);
+[[maybe_unused]] static inline i32
+spin_init (spinlocker_t *mutex)
+{
+  atomic_init (&mutex->locker, 0);
 
-i32 spin_unlock (spinlocker_t *mutex);
-i32 spin_lock (spinlocker_t *mutex);
+  mutex->pid_owner = 0;
+  mutex->count = 0;
+
+  return 0;
+}
+
+[[maybe_unused]] static inline i32
+spin_deinit (spinlocker_t *mutex)
+{
+
+  memset (mutex, 0, sizeof *mutex);
+  return 0;
+}
 
 #endif

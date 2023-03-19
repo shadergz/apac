@@ -1,5 +1,5 @@
-#ifndef APAC_STORAGE_DIRIO_H
-#define APAC_STORAGE_DIRIO_H
+#ifndef APAC_STORAGE_DIRHANDLER_H
+#define APAC_STORAGE_DIRHANDLER_H
 
 #include <api.h>
 
@@ -11,8 +11,6 @@ i32 dirio_open (const char *path, const char *perm, storage_dirio_t *dir);
 
 u64 dirio_read (void *store_local, u64 buf_size, storage_dirio_t *dir);
 i32 dirio_rewind (storage_dirio_t *dir);
-
-const char *dirio_getname (storage_dirio_t *dir);
 
 i32 dirio_close (storage_dirio_t *dir);
 

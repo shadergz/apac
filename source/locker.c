@@ -5,11 +5,11 @@
 #include <layer.h>
 #include <memctrlext.h>
 
-#include <storage/tree.h>
+#include <storage/tree_stg.h>
 
 #include <storage/extio/advise.h>
 #include <storage/extio/flock.h>
-#include <storage/fio.h>
+#include <storage/fhandler.h>
 
 #include <locker.h>
 

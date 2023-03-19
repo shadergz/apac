@@ -4,7 +4,7 @@
 #include <api.h>
 
 i32 select_move (apac_ctx_t *apac_ctx);
-i32 select_disc (rule_selector_t *dsel, apac_ctx_t *apac_ctx);
+i32 select_remove (rule_selector_t *dsel, apac_ctx_t *apac_ctx);
 
 i32 select_change (const char *opt, u64 user_value, apac_ctx_t *apac_ctx);
 

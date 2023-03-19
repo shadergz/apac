@@ -1,3 +1,4 @@
+
 #include <stddef.h>
 #include <stdio.h>
 
@@ -8,13 +9,13 @@
 #include <tip.h>
 
 #include <echo/fmt.h>
-#include <storage/fio.h>
+#include <storage/fhandler.h>
 
 static i32
 back_load_ocl (apac_ctx_t *apac_ctx)
 {
   backend_ctx_t *core = apac_ctx->core_backend;
-  core->ocl_shared = apmalloc (sizeof (storage_fio_t));
+  core->ocl_shared = (storage_fio_t *)apmalloc (sizeof (storage_fio_t));
 
   opencl_int_t *interface = core->ocl_interface;
   interface->ocl_driver = NULL;
@@ -62,7 +63,7 @@ load_now:
   echo_info (apac_ctx,
              "There's a OpenCL driver located at %s, "
              "trying to load it!\n",
-             core->ocl_shared->file_name);
+             core->ocl_shared->file_path);
 
   bret = ocl_init (apac_ctx);
   if (bret != 0)
@@ -98,7 +99,8 @@ i32
 back_init (apac_ctx_t *apac_ctx)
 {
   backend_ctx_t *core = apac_ctx->core_backend;
-  core->ocl_interface = apmalloc (sizeof (*core->ocl_interface));
+  core->ocl_interface
+      = (opencl_int_t *)apmalloc (sizeof (*core->ocl_interface));
   if (core->ocl_interface == NULL)
     return -1;
 

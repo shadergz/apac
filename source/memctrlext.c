@@ -3,7 +3,7 @@
 #include <echo/fmt.h>
 #include <memctrlext.h>
 
-#define MALLOC_MAX_LIMIT 1 << 7 // 128 bytes (if u will want more simplicity)
+#define MALLOC_MAX_LIMIT 1 << 7 // 128 bytes (if you want more simplicity)
 #define MALLOC_DEBUG 0
 
 u64
@@ -24,7 +24,7 @@ memctrl_report (u64 block_size, void *new, const char *wrapper_name)
 
   echo_debug (NULL,
               "New memory block of size %#04lu allocated at %#p, "
-              "using %8s wrapper\n",
+              "using (%8s) wrapper\n",
               block_size, new, wrapper_name);
 }
 #endif
@@ -35,15 +35,14 @@ apcalloc (u64 nele, u64 esize)
   if (nele == 0 || esize == 0)
     {
       echo_warning (NULL,
-                    "Attempting to allocate a block with a zero expression "
-                    "evaluation, (nele %lu) or (esize %lu) can't be 0!",
+                    "Attempt to allocate a block with a zero expression "
+                    "evaluation, (nele %lu) or (esize %lu) can't be 0!\n",
                     nele, esize);
       return NULL;
     }
 
   echo_assert (NULL, esize % 2 == 0,
-               "Attempting to allocate a non "
-               "aligned pointer with calloc");
+               "Attempt to allocate a non aligned pointer with calloc");
 
   void *new = calloc (nele, esize);
 #if MALLOC_DEBUG
@@ -85,10 +84,10 @@ apfree (void *endptr)
 
 #if MALLOC_DEBUG
 #if defined(__linux__)
-  echo_debug (NULL, "Memory in %#p with %04lu being de-allocated\n", endptr,
+  echo_debug (NULL, "Memory in %#p with %04lu being deallocated\n", endptr,
               malloc_usable_size (endptr));
 #else
-  echo_debug (NULL, "Memory in %#p being de-allocated\n", endptr);
+  echo_debug (NULL, "Memory in %#p being deallocated\n", endptr);
 #endif
 
 #endif

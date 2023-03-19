@@ -4,7 +4,7 @@
 #include <stddef.h>
 
 #include <echo/fmt.h>
-#include <storage/fio.h>
+#include <storage/fhandler.h>
 
 #define AP_LOAD_FUNC(ctx, ptr, sym_name, sym_type, lib_name, onerr)           \
   do                                                                          \
@@ -40,6 +40,8 @@ ocl_init (apac_ctx_t *apac_ctx)
 
   AP_LOAD_FUNC (apac_ctx, ocl_int, clGetDeviceIDs, OCL_GETDEVICEIDS_FUNC,
                 OpenCL, -1);
+  AP_LOAD_FUNC (apac_ctx, ocl_int, clGetDeviceInfo, OCL_GETDEVICEINFO_FUNC,
+                OpenCL, -1);
 
   return 0;
 }
@@ -57,8 +59,9 @@ ocl_native_strerr (cl_int err)
 
   switch (err)
     {
-      // This list contains all OpenCL 1.2 possible problems and errors!
+      // This list contains all OpenCL 2.0 possible problems and errors!
 
+#if defined(CL_VERSION_1_0)
       CL_ERR (CL_SUCCESS);
       CL_ERR (CL_DEVICE_NOT_FOUND);
       CL_ERR (CL_DEVICE_NOT_AVAILABLE);
@@ -72,9 +75,14 @@ ocl_native_strerr (cl_int err)
       CL_ERR (CL_IMAGE_FORMAT_NOT_SUPPORTED);
       CL_ERR (CL_BUILD_PROGRAM_FAILURE);
       CL_ERR (CL_MAP_FAILURE);
+#endif
+
+#if defined(CL_VERSION_1_1)
       CL_ERR (CL_MISALIGNED_SUB_BUFFER_OFFSET);
       CL_ERR (CL_EXEC_STATUS_ERROR_FOR_EVENTS_IN_WAIT_LIST);
+#endif
 
+#if defined(CL_VERSION_1_2)
       // Compiler problems
       CL_ERR (CL_COMPILE_PROGRAM_FAILURE);
       CL_ERR (CL_LINKER_NOT_AVAILABLE);
@@ -82,9 +90,10 @@ ocl_native_strerr (cl_int err)
 
       CL_ERR (CL_DEVICE_PARTITION_FAILED);
       CL_ERR (CL_KERNEL_ARG_INFO_NOT_AVAILABLE);
+#endif
 
-      // Compile-time errors
-
+// Compile-time errors
+#if defined(CL_VERSION_1_0)
       CL_ERR (CL_INVALID_VALUE);
       CL_ERR (CL_INVALID_DEVICE_TYPE);
       CL_ERR (CL_INVALID_PLATFORM);
@@ -119,11 +128,24 @@ ocl_native_strerr (cl_int err)
       CL_ERR (CL_INVALID_BUFFER_SIZE);
       CL_ERR (CL_INVALID_MIP_LEVEL);
       CL_ERR (CL_INVALID_GLOBAL_WORK_SIZE);
+#endif
+
+#if defined(CL_VERSION_1_1)
       CL_ERR (CL_INVALID_PROPERTY);
+#endif
+
+#if defined(CL_VERSION_1_2)
       CL_ERR (CL_INVALID_IMAGE_DESCRIPTOR);
       CL_ERR (CL_INVALID_COMPILER_OPTIONS);
       CL_ERR (CL_INVALID_LINKER_OPTIONS);
       CL_ERR (CL_INVALID_DEVICE_PARTITION_COUNT);
+#endif
+
+#if defined(CL_VERSION_2_0)
+      CL_ERR (CL_INVALID_PIPE_SIZE);
+      CL_ERR (CL_INVALID_DEVICE_QUEUE);
+
+#endif
 
       CL_DEFAULT (CL_UNKNOWN_ERROR);
     }
@@ -159,6 +181,32 @@ ocl_getdeviceids (apac_ctx_t *apac_ctx, cl_platform_id platform,
 }
 
 i32
+ocl_getdeviceinfo (apac_ctx_t *apac_ctx, cl_device_id device,
+                   cl_device_info param_name, size_t param_value_size,
+                   void *param_value, size_t *param_value_size_ret)
+
+{
+  echo_assert (NULL, apac_ctx != NULL,
+               "Context is null, you can't use this\n");
+
+  backend_ctx_t *back = apac_ctx->core_backend;
+  opencl_int_t *ocl_ptr = back->ocl_interface;
+
+  const cl_int err = ocl_ptr->clGetDeviceInfo (
+      device, param_name, param_value_size, param_value, param_value_size_ret);
+  if (err != CL_SUCCESS)
+    {
+      echo_error (apac_ctx,
+                  "clGetDeviceInfo can't retrieve information from "
+                  "the device %p, because of %s\n",
+                  device, ocl_native_strerr (err));
+      return -1;
+    }
+
+  return 0;
+}
+
+i32
 ocl_deinit (apac_ctx_t *apac_ctx)
 {
   backend_ctx_t *back = apac_ctx->core_backend;
@@ -170,6 +218,7 @@ ocl_deinit (apac_ctx_t *apac_ctx)
   dyn_unload (openCL->ocl_driver);
 
   openCL->clGetDeviceIDs = NULL;
+  openCL->clGetDeviceInfo = NULL;
 
   return 0;
 }

@@ -2,7 +2,7 @@
 #ifndef APAC_STORAGE_EXTIO_FLOCK_H
 #define APAC_STORAGE_EXTIO_FLOCK_H
 
-#include <storage/fio.h>
+#include <storage/fhandler.h>
 
 typedef enum fio_locker
 {

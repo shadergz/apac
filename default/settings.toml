@@ -5,7 +5,7 @@ default_scenario=0
 use_max_cpu=true
 config_filename="settings.toml"
 max_filesize=130
-interface=tui
+interface="terminal"
 
 [networking]
 limit_traffic_rate=300
@@ -18,7 +18,9 @@ max_file_counts=20000
 filename="apac.log"
 
 [packages]
+exec_script="decode.asc"
 limit_minimum_supported_api="KitKat"
+structure_model="APKTOOL"
 
 [input]
 default_input="input.apk"

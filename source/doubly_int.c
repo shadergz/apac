@@ -106,6 +106,8 @@ void *
 doubly_drop (doublydie_t *doubly)
 {
   doublydie_t *rm = doubly->cursor;
+  doubly->cursor = NULL;
+
   if (!rm || rm == doubly)
     {
       void *user = doubly->node_data;
@@ -219,7 +221,7 @@ doubly_deinit (doublydie_t *doubly)
 }
 
 i32
-doubly_rm (void *data, doublydie_t *doubly)
+doubly_remove (void *data, doublydie_t *doubly)
 {
   if (doubly->node_data == data && doubly->prev == NULL)
     {

@@ -49,17 +49,20 @@ super_getcores ()
 u64
 scalar_cpuname (char *cpu_nb, u64 cpu_nsz)
 {
-  i32 info_fd = open ("/proc/cpuinfo", O_RDONLY);
+  static const char *proc_path = "/proc/cpuinfo";
+
+  i32 info_fd = open (proc_path, O_RDONLY);
+
   if (info_fd < 0)
     return -1;
 
 #if defined(__ANDROID__)
-#define PROC_BUFFER_MAX_SZ 0x3120
+#define PROC_BUFFER_MAX_SZ 0x3020
 #else
 #define PROC_BUFFER_MAX_SZ 0x320
 #endif
 
-  char *proc_buffer = apmalloc (sizeof (char) * PROC_BUFFER_MAX_SZ);
+  char *proc_buffer = (char *)apmalloc (sizeof (char) * PROC_BUFFER_MAX_SZ);
   if (proc_buffer == NULL)
     return -1;
 
@@ -67,11 +70,17 @@ scalar_cpuname (char *cpu_nb, u64 cpu_nsz)
   close (info_fd);
 
   if (rret == -1)
-    echo_error (NULL, "Can't read from `/proc/cpuinfo`\n");
+    {
+      echo_error (NULL, "Can't read from `%s`\n", proc_path);
+      return -1;
+    }
 
 #if defined(__ANDROID__)
   char *table = strstr (proc_buffer, "Hardware");
   const char *colon = strhandler_skip (table, ": ");
+  char *rline = strrchr (colon, '\n');
+  if (rline)
+    *rline = '\0';
 
 #else
   char *table = strstr (proc_buffer, "model name");
@@ -95,7 +104,7 @@ scalar_cpuinfo (char *cpu_vendor, char *cpu_name, char *cpu_features, u64 vesz,
                 u64 namesz, u64 featuresz, u8 *cores_count, u8 *threads_count)
 {
 #if defined(__x86_64__)
-  u32 gpr[0xb];
+  u32 gpr[0xc];
 
   if (!cpu_vendor || vesz < 12)
     goto fetchcpuname;

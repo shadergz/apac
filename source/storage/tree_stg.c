@@ -4,10 +4,10 @@
 
 #include <layer.h>
 #include <memctrlext.h>
-#include <storage/dirio.h>
+#include <storage/dirhandler.h>
 
-#include <storage/fio.h>
-#include <storage/tree.h>
+#include <storage/fhandler.h>
+#include <storage/tree_stg.h>
 
 #include <echo/fmt.h>
 
@@ -24,8 +24,9 @@ tree_makeroot (const char *relative, apac_ctx_t *apac_ctx)
   memset (root, 0, sizeof (storage_tree_t));
   root->node_level = 0;
 
-  storage_dirio_t *dir = apmalloc (sizeof (storage_dirio_t));
-  root->leafs = apmalloc (sizeof (doublydie_t));
+  storage_dirio_t *dir
+      = (storage_dirio_t *)apmalloc (sizeof (storage_dirio_t));
+  root->leafs = (doublydie_t *)apmalloc (sizeof (doublydie_t));
   doubly_init (root->leafs);
 
   tree_open_dir (dir, relative, apac_ctx);
@@ -72,10 +73,14 @@ tree_detach_file (storage_tree_t *from, const char *restrict relative,
       if (nfile == NULL)
         return -1;
 
+      file_relative = NULL;
       layer_asprintf (&file_relative, "%s/%s", nfile->file_rel,
                       nfile->file_name);
       if (strncmp (file_relative, relative, strlen (file_relative)) != 0)
-        continue;
+        {
+          apfree (file_relative);
+          continue;
+        }
       /* We have found the correct relative pathname file object
        * dropping the actual node pointed by `cursor`! */
       doubly_drop (from->leafs);
@@ -102,9 +107,9 @@ tree_close_file (bool *closed, const char *filename, apac_ctx_t *apac_ctx)
   storage_fio_t *fio;
   tree_detach_file (file_dir, filename, &fio, apac_ctx);
 
-  *closed = fio_finish (fio) == 0;
   if (fio)
     {
+      *closed = fio_finish (fio) == 0;
       apfree ((char *)fio->file_rel);
       fio->file_rel = 0;
     }
@@ -129,9 +134,9 @@ tree_open_dir (storage_dirio_t *place, const char *user_path,
   if (dirio != 0)
     {
       echo_error (apac_ctx,
-                  "Can't open a directory (%s) inside the tree "
+                  "Can't open a directory with (%s) inside the tree "
                   "(%s)\n",
-                  user_path, dirio_getname (dir_put->node_dir));
+                  user_path, dir_put->node_dir->dir_path);
       return dirio;
     }
 

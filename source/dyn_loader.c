@@ -6,7 +6,7 @@
 #include <strhandler.h>
 
 i32
-dyn_getinfo (const void *addr, dyninfo_t *fill)
+dyn_getinfo (const void *addr, dlinfo_t *fill)
 {
   if (addr == NULL || fill == NULL)
     return -1;
@@ -46,14 +46,14 @@ dyn_loadsymbol (external_module_t handle, const char *loadsym)
     return NULL;
 
   echo_info (NULL,
-             "New object loaded at address %p with name `%s` from object %p\n",
+             "New symbol loaded at address %p with name `%s` from object %p\n",
              dlobject, loadsym, handle);
 
   return dlobject;
 }
 
 const char *
-dyn_getsymbolname (const void *addr, dyninfo_t *fill)
+dyn_getsymbolname (const void *addr, dlinfo_t *fill)
 {
   if (addr == NULL || fill == NULL)
     return NULL;
@@ -61,7 +61,7 @@ dyn_getsymbolname (const void *addr, dyninfo_t *fill)
   const i32 ret = dladdr (addr, fill);
 
   echo_debug (NULL,
-              "Attempting to locate a object symbol "
+              "Attempt to locate a object symbol "
               "name with %p address has %s\n",
               addr, fill->dli_sname ? "successed" : "failed");
   if (ret == 0)

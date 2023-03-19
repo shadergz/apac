@@ -1,0 +1,4 @@
+#ifndef APAC_STORAGE_ASYNC_IO_H
+#define APAC_STORAGE_ASYNC_IO_H
+
+#endif

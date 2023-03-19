@@ -1,6 +1,6 @@
 
+#include <fcntl.h>
 #include <limits.h>
-#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -11,15 +11,13 @@
 
 #include <storage/extio/flock.h>
 #include <storage/extio/stream_mime.h>
-#include <storage/fio.h>
+#include <storage/fhandler.h>
 
 #include <echo/fmt.h>
 #include <memctrlext.h>
 
 #include <storage/io_native.h>
 #include <unistd.h>
-
-#define FIO_IS_REFERENCE(perm) (strncasecmp (perm, "ref", 3) == 0)
 
 typedef struct stat native_stat_t;
 
@@ -69,7 +67,10 @@ fio_open (const char *path, const char *perm, storage_fio_t *file)
 
   if (relobs)
     file->file_name = strdup (relobs + 1);
-  if (__builtin_expect (FIO_IS_REFERENCE (perm), 0))
+  else
+    file->file_name = file->file_path;
+
+  if (strncasecmp (perm, "ref", strlen ("ref")) == 0)
     return 0;
   if (fio_check (stat_buffer, file) != 0)
     goto ferror;
@@ -209,7 +210,7 @@ error_read:
               file->file_path, strerror (errno));
   if (errno == EBADF)
     echo_info (NULL,
-               "May the fd %d from %s is corrupted or not "
+               "May the fd %d from %s is corrupted or isn't "
                "more valid\n",
                file->file_fd, file->file_path);
 
@@ -221,6 +222,9 @@ error_read:
 i32
 fio_seekbuffer (storage_fio_t *file, u64 offset, fio_seek_e seek_type)
 {
+  if (!file)
+    return -1;
+
   switch (seek_type)
     {
     case FIO_SEEK_SET:
@@ -228,49 +232,14 @@ fio_seekbuffer (storage_fio_t *file, u64 offset, fio_seek_e seek_type)
       if (offset < file->cache_valid)
         file->cache_cursor = file->rw_cache + offset;
       file->cursor_offset = offset;
+    case FIO_SEEK_CURSOR:
+      lseek (file->file_fd, offset, SEEK_CUR);
+      if (!offset)
+        break;
     }
   const i32 fret = fsync (file->file_fd);
 
   return fret;
-}
-
-i32
-fio_snreadf (char *out, u64 out_size, storage_fio_t *file,
-             const char *restrict format, ...)
-{
-  va_list va;
-  va_start (va, format);
-
-  u8 *out_buffer = (u8 *)out;
-  if (!out_buffer || !out_size)
-    return -1;
-
-  fio_read (file, out_buffer, out_size);
-  const i32 vss = vsscanf ((char *)out_buffer, format, va);
-
-  va_end (va);
-
-  return vss;
-}
-
-i32
-fio_snwritef (char *out, u64 outs, storage_fio_t *file,
-              const char *restrict format, ...)
-{
-  va_list va;
-  va_start (va, format);
-
-  u8 *wrb_buffer = (u8 *)out;
-  if (!wrb_buffer || !outs)
-    return -1;
-
-  vsnprintf ((char *)out, outs, format, va);
-
-  const i32 fiow = (i32)fio_write (file, out, strlen (out));
-
-  va_end (va);
-
-  return fiow;
 }
 
 i32
@@ -288,7 +257,7 @@ fio_finish (storage_fio_t *file)
 
   if (file->is_link)
     apfree ((char *)file->real_filename);
-  if (file->file_name)
+  if (file->file_name && file->file_name != file->file_path)
     apfree ((char *)file->file_name);
 
   if (file->file_path)

@@ -1,11 +1,14 @@
 target_sources(apac PRIVATE
-	dirio.c
-	fio.c
-	
-	extio/flock.c
-	extio/stream_mime.c
-	extio/advise.c
+  dirio_compon.c
+  fio_regrw.c
+  fformat.c
+  fgetset.c
+  async_io.c
+  
+  extio/flock.c
+  extio/stream_mime.c
+  extio/advise.c
 
-	tree.c
-	io_native.c
+  tree_stg.c
+  io_native.c
 )

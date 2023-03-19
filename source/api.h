@@ -1,17 +1,20 @@
 #ifndef APAC_API_H
 #define APAC_API_H
 
+#include <regex.h>
+#include <signal.h>
 #include <stdatomic.h>
 #include <stdbool.h>
 #include <stdint.h>
 
-#define CL_TARGET_OPENCL_VERSION 120
+#define CL_TARGET_OPENCL_VERSION 200
 #include <CL/opencl.h>
 
 typedef uint8_t u8;
 
-typedef int32_t i32;
 typedef uint16_t u16;
+
+typedef int32_t i32;
 typedef uint32_t u32;
 typedef uint64_t u64;
 
@@ -29,7 +32,7 @@ typedef struct stream_mime
 
 typedef struct vecdie
 {
-  void *vec_dynamic;
+  u8 *vec_dynamic;
   u64 vec_capa;
   u64 vec_dsize;
   u64 vec_used;
@@ -54,18 +57,46 @@ typedef struct spinlocker
 {
   /* Our dedicated atomic variable by the way, using explicitly
    * the atomic keyword! */
-  atomic_flag spin;
-  _Atomic u32 recursive_lcount;
-  _Atomic pthread_t owner_thread;
+  _Atomic u32 locker;
+
+  _Atomic u32 count;
+  _Atomic pthread_t pid_owner;
 
 } spinlocker_t;
 
+typedef enum natural_color
+{
+  NATURAL_COLOR_GREEN,
+  NATURAL_COLOR_RED,
+  NATURAL_COLOR_YELLOW,
+  NATURAL_COLOR_ORANGE
+} natural_color_e;
+
+typedef enum thread_metrics
+{
+  THREAD_METRICS_HIGH_PERFORMANCE,
+  THREAD_METRICS_MID_PERFORMANCE,
+  THREAD_METRICS_LOW_PERFORMANCE
+} thread_metrics_e;
+
+typedef struct threadscore
+{
+  natural_color_e thread_color;
+  thread_metrics_e metrics;
+
+} threadscore_t;
+
 typedef struct schedthread
 {
-  u32 thread_id;
-  const char *thread_name;
+  pthread_t thread_handler;
+  threadscore_t score;
 
-  const char *echo_message;
+  const char *thread_name;
+  const char *context_name;
+
+  _Atomic bool executing;
+
+  char *echo_message;
   u64 echo_size;
 
   pid_t native_tid;
@@ -74,7 +105,15 @@ typedef struct schedthread
 
 typedef struct schedgov
 {
-  vecdie_t *thread_info_vec;
+  vecdie_t *threads_info;
+
+  pthread_attr_t *thread_attrs;
+  sigset_t thread_dflt;
+
+  _Atomic u8 threads_count;
+  u8 cores;
+  spinlocker_t mutex;
+
 } schedgov_t;
 
 typedef struct storage_dirio
@@ -163,12 +202,39 @@ typedef struct echo_ctx
 
 typedef struct config_user
 {
-  const char *default_input;
-  const char *default_output;
+  struct
+  {
+    // [main]
+    const char *default_scenario;
+    const char *config_filename;
+    const char *interface;
 
-  const char *exec_script;
-  const char *structure_model;
+    u8 max_thread;
+    bool user_max_cpu;
+    u64 max_filesize;
+  };
 
+  struct
+  {
+    // [input]
+    const char *default_input;
+  };
+
+  struct
+  {
+    // [output]
+    const char *default_output;
+  };
+
+  struct
+  {
+    // [packages]
+    const char *exec_script;
+    const char *limit_minimum_supported_api;
+    const char *structure_model;
+  };
+
+  regex_t *confsetexpr;
 } config_user_t;
 
 typedef void *external_module_t;
@@ -181,12 +247,18 @@ typedef cl_int (*OCL_GETDEVICEIDS_FUNC) (cl_platform_id platform,
                                          cl_uint num_entries,
                                          cl_device_id *devices,
                                          cl_uint *num_devices);
+typedef cl_int (*OCL_GETDEVICEINFO_FUNC) (cl_device_id device,
+                                          cl_device_info param_name,
+                                          size_t param_value_size,
+                                          void *param_value,
+                                          size_t *param_value_size_ret);
 
 typedef struct opencl_int
 {
   opencl_driver_t ocl_driver;
 
   OCL_GETDEVICEIDS_FUNC clGetDeviceIDs;
+  OCL_GETDEVICEINFO_FUNC clGetDeviceInfo;
 
 } opencl_int_t;
 
@@ -223,7 +295,7 @@ typedef enum pkg_type
 
 } pkg_type_e;
 
-typedef struct pkg_contatiner
+typedef struct pkg_container
 {
   pkg_type_e pkgtype;
 
@@ -234,7 +306,7 @@ typedef struct pkg_contatiner
   u8 *pkg_umap;
 
   const pkg_settings_t *todo;
-} pkg_contatiner;
+} pkg_container_t;
 
 typedef struct pkg_manager
 {
@@ -258,6 +330,58 @@ typedef struct rule_selector
 
 } rule_selector_t;
 
+typedef enum cache_type
+{
+  CACHE_TYPE_STRING,
+  CACHE_TYPE_RAW_DATA
+} cache_type_e;
+
+typedef enum cache_special_id
+{
+  CACHE_SPECIAL_ID_OCL_BINARIES
+} cache_special_id_e;
+
+typedef struct cache_entry
+{
+  cache_type_e entry_type;
+  cache_special_id_e entry_special;
+
+#define ENTRY_DESC_SZ 0xb
+  char entry_desc[ENTRY_DESC_SZ];
+
+  u64 stream_size;
+  u8 stream[];
+} cache_entry_t;
+
+typedef struct cache_header_t
+{
+  u16 cache_magic;
+  u8 cache_version;
+
+  time_t creation_date;
+  time_t last_access;
+  time_t last_moder;
+
+#define SHA256_BLOCK_SIZE 512 / 8
+
+  u8 sha2_entrsum[SHA256_BLOCK_SIZE];
+
+  u64 entries_count;
+
+  u16 string_entcount;
+  u16 ocl_binary_entcount;
+
+  cache_entry_t entries[];
+} cache_header_t;
+
+typedef struct fast_cache
+{
+  cache_header_t *header;
+  doublydie_t *entries;
+  u8 *cache_ptr;
+
+} fast_cache_t;
+
 typedef struct session_ctx
 {
   user_options_t *user_options;
@@ -279,6 +403,8 @@ typedef struct apac_ctx
   storage_tree_t *root;
 
   lockerproc_t *locker;
+
+  fast_cache_t *fastc;
 } apac_ctx_t;
 
 #endif

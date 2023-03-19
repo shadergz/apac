@@ -11,12 +11,11 @@
 #include <inner.h>
 #include <sched/gov.h>
 
-#define WRAPPER_TYPE_TO_STR(type) #type
-#define TYPE_2_STR(type) WRAPPER_TYPE_TO_STR (typeof (type))
-
 static i32
 apac_san (apac_ctx_t *apac_ctx)
 {
+#define WRAPPER_TYPE_TO_STR(type) #type
+#define TYPE_2_STR(type) WRAPPER_TYPE_TO_STR (typeof (type))
   const char *symbol_name = NULL;
 
   if (apac_ctx->user_session == NULL)
@@ -42,6 +41,8 @@ nonallocated:
               "%s wasn't allocated, this is a non irrecuperable status\n",
               symbol_name);
   return -1;
+#undef WRAPPER_TYPE_TO_STR
+#undef TYPE_2_STR
 }
 
 static i32
@@ -56,12 +57,15 @@ apac_init (apac_ctx_t *apac_ctx)
   apac_ctx->root = (storage_tree_t *)apmalloc (sizeof (storage_tree_t));
   apac_ctx->locker = (lockerproc_t *)apmalloc (sizeof (lockerproc_t));
 
+  apac_ctx->fastc = (fast_cache_t *)apmalloc (sizeof (fast_cache_t));
+
   memset (apac_ctx->user_session, 0, sizeof (*apac_ctx->user_session));
   memset (apac_ctx->echo_system, 0, sizeof (*apac_ctx->echo_system));
   memset (apac_ctx->core_backend, 0, sizeof (*apac_ctx->core_backend));
   memset (apac_ctx->governor, 0, sizeof (*apac_ctx->governor));
   memset (apac_ctx->root, 0, sizeof (*apac_ctx->root));
   memset (apac_ctx->locker, 0, sizeof (*apac_ctx->locker));
+  memset (apac_ctx->fastc, 0, sizeof (*apac_ctx->fastc));
 
   const i32 sanret = apac_san (apac_ctx);
   if (sanret != 0)
@@ -90,6 +94,8 @@ apac_deinit (apac_ctx_t *apac_ctx)
     apfree (apac_ctx->root);
   if (apac_ctx->locker != NULL)
     apfree (apac_ctx->locker);
+  if (apac_ctx->fastc != NULL)
+    apfree (apac_ctx->fastc);
 
   return 0;
 }
@@ -121,17 +127,15 @@ main (i32 argc, char **argv)
     {
       echo_error (apac_main, "Can't setup the main core thread name, "
                              "the scheduler wasn't activated!\n");
+      apfree (apac_main);
       return sched;
     }
 
   const i32 sinit = session_init (argc, argv, apac_main);
-  if (sinit != 0)
+  if (sinit == -1)
     {
-      if (sinit == -1)
-        {
-          echo_error (apac_main, "Session starting was failed, "
-                                 "killing the process...\n");
-        }
+      echo_error (apac_main, "Session starting was failed, "
+                             "killing the process...\n");
       session_deinit (apac_main);
       goto going_out;
     }
