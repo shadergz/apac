@@ -18,7 +18,7 @@ fio_advise (storage_fio_t *file, u64 offset, u64 len, fio_advise_e ad)
     case FIO_ADVISE_AVOID:
       posix_fadvise (ffd, offset, len, POSIX_FADV_DONTNEED);
       break;
-    case FIO_ADVISE_ENTIRE:
+    case FIO_ADVISE_SEQUENTIAL:
       posix_fadvise (ffd, offset, len, POSIX_FADV_SEQUENTIAL);
       break;
     case FIO_ADVISE_RANDOM:

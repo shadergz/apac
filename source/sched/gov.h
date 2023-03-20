@@ -3,8 +3,9 @@
 
 #include <api.h>
 
-#define MAX_POSSIBLE_CORES 32
-#define SOLVE_CORE_ID MAX_POSSIBLE_CORES
+#include <default.h>
+
+#define MAX_POSSIBLE_CORES CONFIG_DEFAULT_MAX_THREAD_MAX
 
 i32 sched_init (apac_ctx_t *apac_ctx);
 i32 sched_deinit (apac_ctx_t *apac_ctx);

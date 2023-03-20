@@ -47,17 +47,17 @@ static cache_entry_t *
 cache_readent (storage_fio_t *driver, fast_cache_t *cache)
 {
 #define ENTRY_AUX_BSZ sizeof (typeof (cache_entry_t))
-  u8 entry_aux[ENTRY_AUX_BSZ];
+  u8 entry_header[ENTRY_AUX_BSZ];
 
   cache_entry_t *ent = NULL;
 
   const off_t file_local = fio_seekbuffer (driver, 0, FIO_SEEK_CURSOR);
-  fio_read (driver, entry_aux, sizeof entry_aux);
+  fio_read (driver, entry_header, sizeof entry_header);
 
-  ent = (cache_entry_t *)entry_aux;
+  ent = (cache_entry_t *)entry_header;
   if (ent->stream_size == 0)
     return NULL;
-  fio_advise (driver, file_local, ent->stream_size, FIO_ADVISE_ENTIRE);
+  fio_advise (driver, file_local, ent->stream_size, FIO_ADVISE_SEQUENTIAL);
 
   cache_entry_t *rentry = (cache_entry_t *)apmalloc (
       sizeof (cache_entry_t) + explicit_align (ent->stream_size, 2));
@@ -151,7 +151,7 @@ cache_init (apac_ctx_t *apac_ctx)
                 cache_file->file_path, cache_file);
 
   // We will read the entire cache header at once
-  fio_advise (cache_file, 0, sizeof *cache->header, FIO_ADVISE_ENTIRE);
+  fio_advise (cache_file, 0, sizeof *cache->header, FIO_ADVISE_SEQUENTIAL);
   i32 cre = cache_reload (apac_ctx);
   if (cre != -1)
     cre = 0;

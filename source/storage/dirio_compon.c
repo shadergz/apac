@@ -11,8 +11,11 @@ dirio_rewind (storage_dirio_t *dir)
 {
   if (dir->dir_fd < 3)
     return -1;
-  return dir->buf_pos = dir->buf_end = dir->position
-         = lseek (dir->dir_fd, 0, SEEK_SET);
+
+  dir->buf_pos = dir->buf_end = dir->position = 0;
+  const i32 lret = (i32)lseek (dir->dir_fd, 0, SEEK_SET);
+
+  return lret;
 }
 
 i32

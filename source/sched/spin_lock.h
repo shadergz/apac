@@ -3,9 +3,10 @@
 
 #include <api.h>
 
-#include <pthread.h>
 #include <stdatomic.h>
 #include <string.h>
+
+#include <echo/fmt.h>
 
 i32 spin_runlock (spinlocker_t *mutex);
 i32 spin_rlock (spinlocker_t *mutex);
@@ -14,6 +15,8 @@ i32 spin_rlock (spinlocker_t *mutex);
 spin_init (spinlocker_t *mutex)
 {
   atomic_init (&mutex->locker, 0);
+  echo_assert (NULL, atomic_is_lock_free (&mutex->locker),
+               "This SPINLOCKER implementation isn't valid for your machine!");
 
   mutex->pid_owner = 0;
   mutex->count = 0;

@@ -106,7 +106,7 @@ sched_stop (apac_ctx_t *apac_ctx)
       spin_runlock (&gov->mutex);
     }
 
-  echo_success (apac_ctx, "Thereads created: %d, threads running %d\n",
+  echo_success (apac_ctx, "Threads created: %d, threads running %d\n",
                 gov->threads_count, gov->cores);
 
   const u8 thread_count = vec_capacity (gov->threads_info);
@@ -122,7 +122,7 @@ sched_stop (apac_ctx_t *apac_ctx)
 
       orchestra_die (thXX, apac_ctx);
       /* This can be done outside the thread, we can kill the thread and after
-       * remove it's data! */
+       * release it's data! */
       sched_cleanup (thXX, apac_ctx);
     }
 

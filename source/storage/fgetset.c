@@ -31,7 +31,7 @@ fio_get (storage_fio_t *file, fio_get_e get)
 {
   if (file == NULL)
     return 0;
-  u64 getret = 0;
+  u64 getret[1] = {};
 
   switch (get)
     {
@@ -39,12 +39,14 @@ fio_get (storage_fio_t *file, fio_get_e get)
       {
         native_stat_t fs = {};
         fstat (file->file_fd, &fs);
-        return (u64)fs.st_size;
+
+        getret[0] = fs.st_size;
+        break;
       }
     case FIO_GET_ONDISK_CURSOR:
-      getret = lseek (file->file_fd, 0, SEEK_CUR);
+      getret[0] = lseek (file->file_fd, 0, SEEK_CUR);
       break;
     }
 
-  return getret;
+  return getret[0];
 }

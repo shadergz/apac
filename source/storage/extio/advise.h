@@ -7,7 +7,7 @@ typedef enum fio_advise
 {
   FIO_ADVISE_NEEDED,
   FIO_ADVISE_AVOID,
-  FIO_ADVISE_ENTIRE,
+  FIO_ADVISE_SEQUENTIAL,
   FIO_ADVISE_RANDOM,
 
 } fio_advise_e;

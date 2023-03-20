@@ -9,6 +9,8 @@ typedef enum stream_mime_idx
   STREAM_MIME_IDX_ANDROID_PACKAGE,
   STREAM_MIME_IDX_APPLE_IOS_PACKAGE,
 
+  STREAM_MIME_IDX_APAC_CACHE,
+
   STREAM_MIME_IDX_UNKNOWN
 
 } stream_mime_idx_e;
