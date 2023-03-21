@@ -100,10 +100,17 @@ back_select_devices (apac_ctx_t *apac_ctx)
 {
   backend_ctx_t *backend = apac_ctx->core_backend;
   cl_platform_id platform_id;
+  cl_uint availables;
   cl_uint num_devices;
 
   // Trying to fetch a regular GPU device or fallback to a CPU
-  ocl_getplatformids (apac_ctx, 1, &platform_id, NULL);
+  ocl_getplatformids (apac_ctx, 1, &platform_id, &availables);
+  if (!availables)
+    {
+      echo_error (apac_ctx, "No OpenCL device has found\n");
+      return -1;
+    }
+
   // Getting the number of devices currently available
   ocl_getdeviceids (apac_ctx, platform_id, CL_DEVICE_TYPE_ALL, 0, NULL,
                     &num_devices);
