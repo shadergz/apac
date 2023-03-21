@@ -41,7 +41,7 @@ back_load_ocl (apac_ctx_t *apac_ctx)
     goto load_now;
 
 #if defined(__ANDROID__)
-  const char *ocl_system = "/system/vendor/lib64";
+  const char *ocl_system = "/data/data/com.termux/files/usr/lib";
 #elif defined(__linux__)
   const char *ocl_system = "/usr/lib";
 #endif
