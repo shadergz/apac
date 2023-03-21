@@ -1,4 +1,4 @@
-#include <ocl_hardware.h>
+#include <ocl_driver.h>
 
 #include <dyn_loader.h>
 #include <stddef.h>
@@ -41,6 +41,8 @@ ocl_init (apac_ctx_t *apac_ctx)
   AP_LOAD_FUNC (apac_ctx, ocl_int, clGetDeviceIDs, OCL_GETDEVICEIDS_FUNC,
                 OpenCL, -1);
   AP_LOAD_FUNC (apac_ctx, ocl_int, clGetDeviceInfo, OCL_GETDEVICEINFO_FUNC,
+                OpenCL, -1);
+  AP_LOAD_FUNC (apac_ctx, ocl_int, clGetPlatformIDs, OCL_GETPLATFORMIDS_FUNC,
                 OpenCL, -1);
 
   return 0;
@@ -172,7 +174,7 @@ ocl_getdeviceids (apac_ctx_t *apac_ctx, cl_platform_id platform,
       platform, device_type, num_entries, devices, num_devices);
   if (err != CL_SUCCESS)
     {
-      echo_error (apac_ctx, "clGetDeviceIDs was failed because: %s\n",
+      echo_error (apac_ctx, "clGetDeviceIDs has failed because: %s\n",
                   ocl_native_strerr (err));
       return -1;
     }
@@ -200,6 +202,32 @@ ocl_getdeviceinfo (apac_ctx_t *apac_ctx, cl_device_id device,
                   "clGetDeviceInfo can't retrieve information from "
                   "the device %p, because of %s\n",
                   device, ocl_native_strerr (err));
+      return -1;
+    }
+
+  return 0;
+}
+
+i32
+ocl_getplatformids (apac_ctx_t *apac_ctx, cl_uint num_entries,
+                    cl_platform_id *platforms, cl_uint *num_platforms)
+{
+
+  echo_assert (NULL, apac_ctx != NULL,
+               "Core Context is null, you can't use this\n");
+  opencl_int_t *ocl_ptr = apac_ctx->core_backend->ocl_interface;
+
+  if (!ocl_ptr->clGetPlatformIDs)
+    {
+      echo_error (apac_ctx, "clGetPlatformIDs wasn't loaded by the backend\n");
+      return -1;
+    }
+  const cl_int err
+      = ocl_ptr->clGetPlatformIDs (num_entries, platforms, num_platforms);
+  if (err != CL_SUCCESS)
+    {
+      echo_error (apac_ctx, "clGetDeviceIDs has failed because: %s\n",
+                  ocl_native_strerr (err));
       return -1;
     }
 

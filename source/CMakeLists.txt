@@ -17,8 +17,8 @@ target_sources(apac PRIVATE
   vec_core.c
   cyclic_hw.c 
   doubly_int.c 
-  backend_space.c 
-  ocl_hardware.c 
+  backend_sp.c 
+  ocl_driver.c 
   dyn_loader.c
   tip.c
   locker.c

@@ -52,7 +52,8 @@ add_subdirectory(OpenCL-Headers)
 add_subdirectory(source)
 
 find_package(Threads REQUIRED)
-target_link_libraries(apac PRIVATE m Threads::Threads OpenCL::Headers)
+find_package(OpenAL REQUIRED)
+target_link_libraries(apac PRIVATE m Threads::Threads OpenCL::Headers OpenAL::OpenAL)
 
 install(TARGETS apac DESTINATION ${CMAKE_SOURCE_DIR}/runtime)
 

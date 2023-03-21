@@ -10,6 +10,9 @@
 #define CL_TARGET_OPENCL_VERSION 200
 #include <CL/opencl.h>
 
+#include <AL/al.h>
+#include <AL/alc.h>
+
 typedef uint8_t u8;
 
 typedef uint16_t u16;
@@ -253,12 +256,17 @@ typedef cl_int (*OCL_GETDEVICEINFO_FUNC) (cl_device_id device,
                                           void *param_value,
                                           size_t *param_value_size_ret);
 
+typedef cl_int (*OCL_GETPLATFORMIDS_FUNC) (cl_uint num_entries,
+                                           cl_platform_id *platforms,
+                                           cl_uint *num_platforms);
+
 typedef struct opencl_int
 {
   opencl_driver_t ocl_driver;
 
   OCL_GETDEVICEIDS_FUNC clGetDeviceIDs;
   OCL_GETDEVICEINFO_FUNC clGetDeviceInfo;
+  OCL_GETPLATFORMIDS_FUNC clGetPlatformIDs;
 
 } opencl_int_t;
 
@@ -266,6 +274,10 @@ typedef struct backend_ctx
 {
   opencl_int_t *ocl_interface;
   storage_fio_t *ocl_shared;
+
+  cl_device_id device_inuse;
+  ALCdevice *sound_device_inuse;
+  ALCcontext *sound_context;
 
 } backend_ctx_t;
 

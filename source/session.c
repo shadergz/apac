@@ -12,7 +12,7 @@
 #include <storage/dirhandler.h>
 #include <storage/tree_stg.h>
 
-#include <backend_space.h>
+#include <backend_sp.h>
 #include <doubly_int.h>
 #include <echo/fmt.h>
 

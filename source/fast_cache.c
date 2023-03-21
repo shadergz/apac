@@ -156,6 +156,8 @@ cache_init (apac_ctx_t *apac_ctx)
   if (cre != -1)
     cre = 0;
 
+  cre = cache_dump_info (apac_ctx);
+
   return cre;
 }
 
