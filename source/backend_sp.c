@@ -132,7 +132,7 @@ back_select_devices (apac_ctx_t *apac_ctx)
   ocl_getdeviceinfo (apac_ctx, backend->device_inuse, CL_DEVICE_NAME,
                      DRIVER_DEVICE_NAME, &driver_name, NULL);
 
-  echo_success (apac_ctx, "%s\n", driver_name);
+  echo_success (apac_ctx, "OpenCL device: %s\n", driver_name);
 
   backend->sound_device_inuse = alcOpenDevice (NULL);
   if (!backend->sound_device_inuse)
@@ -152,9 +152,20 @@ back_select_devices (apac_ctx_t *apac_ctx)
 
   alcMakeContextCurrent (backend->sound_context);
 
+  ALCint major_version, minor_version;
+  alcGetIntegerv (backend->sound_device_inuse, ALC_MAJOR_VERSION,
+                  sizeof (ALCint), &major_version);
+  alcGetIntegerv (backend->sound_device_inuse, ALC_MINOR_VERSION,
+                  sizeof (ALCint), &minor_version);
+
+  char aldevice_version[12] = {};
+  snprintf (aldevice_version, sizeof aldevice_version, "%d.%d", major_version,
+            minor_version);
+
   echo_success (
-      apac_ctx, "Found OpenAL device: %s\n",
-      alcGetString (backend->sound_device_inuse, ALC_DEVICE_SPECIFIER));
+      apac_ctx, "Found OpenAL device: %s, version (ALC): %s\n",
+      alcGetString (backend->sound_device_inuse, ALC_CAPTURE_DEVICE_SPECIFIER),
+      aldevice_version);
 
   return 0;
 }
