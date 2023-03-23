@@ -118,7 +118,7 @@ back_select_devices (apac_ctx_t *apac_ctx)
   if (!num_devices)
     {
       echo_error (apac_ctx,
-                  "No one device has found inside the selected plataform!\n");
+                  "No one device has found inside the selected platform!\n");
       return -1;
     }
 

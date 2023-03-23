@@ -226,7 +226,7 @@ ocl_getplatformids (apac_ctx_t *apac_ctx, cl_uint num_entries,
       = ocl_ptr->clGetPlatformIDs (num_entries, platforms, num_platforms);
   if (err != CL_SUCCESS)
     {
-      echo_error (apac_ctx, "clGetDeviceIDs has failed because: %s\n",
+      echo_error (apac_ctx, "clGetPlatformIDs has failed because: %s\n",
                   ocl_native_strerr (err));
       return -1;
     }
