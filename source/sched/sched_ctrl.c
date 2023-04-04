@@ -229,6 +229,8 @@ sched_configure (schedthread_t *thinfo, apac_ctx_t *apac_ctx)
   thinfo->echo_message = (char *)apmalloc (sizeof (char) * thinfo->echo_size);
 
   thinfo->thread_name = sched_sortname ();
+  // By default, all threads will initialize with cyan color
+  thinfo->thread_color = NATURAL_COLOR_CYAN;
 
   thinfo->native_tid = gettid ();
   thinfo->core_owner = sched_getcpu ();
