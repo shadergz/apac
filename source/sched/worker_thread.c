@@ -19,6 +19,36 @@ worker_killsig (i32 thrsig)
   pthread_exit (NULL);
 }
 
+static const char *
+worker_doname (schedthread_t *self, char thbuffer[], u64 thsize)
+{
+  char tname[0x30];
+  const char *color = NULL;
+  switch (self->thread_color)
+    {
+    case NATURAL_COLOR_GREEN:
+      color = "\e[1;42m";
+      break;
+    case NATURAL_COLOR_RED:
+      color = "\e[1;41m";
+      break;
+    case NATURAL_COLOR_YELLOW:
+      color = "\e[1;43m";
+      break;
+    case NATURAL_COLOR_CYAN:
+      color = "\e[1;46m";
+      break;
+    default:
+      color = "";
+    }
+
+  snprintf (tname, sizeof tname, "%s%s\e[0m", color, self->thread_name);
+
+  strplus_padding (thbuffer, tname, 20, '*', PADDING_MODE_END);
+
+  return thbuffer;
+}
+
 void *
 worker_entry (void *apac_ptr)
 {
@@ -39,19 +69,15 @@ worker_entry (void *apac_ptr)
 
   // We can change the thread name more than once inside contexts
   sched_setname (self->thread_name, apac_ctx);
+#define THNAME_BSZ 30
+  char thname[THNAME_BSZ] = {};
+
+  echo_success (
+      apac_ctx, "Thread (%s) with id %lu was started [\e[0;32mON\e[0m]\n",
+      worker_doname (self, thname, sizeof thname), self->thread_handler);
 
   gov->threads_count++;
   spin_runlock (&gov->mutex);
-
-#define THNAME_BSZ 10
-  char thname[THNAME_BSZ] = {};
-
-  echo_success (apac_ctx,
-                "Thread (%s) with id %lu was started [\e[0;32mON\e[0m]\n",
-                strplus_padding (thname, self->thread_name, sizeof thname, '*',
-                                 PADDING_MODE_END),
-                self->thread_handler);
-
   for (;;)
     thread_sleepby (100, THREAD_SLEEPCONV_SECONDS);
   return NULL;
