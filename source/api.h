@@ -7,11 +7,11 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#define CL_TARGET_OPENCL_VERSION 200
-#include <CL/opencl.h>
-
 #include <AL/al.h>
 #include <AL/alc.h>
+
+#define CL_TARGET_OPENCL_VERSION 200
+#include <CL/opencl.h>
 
 typedef uint8_t u8;
 
@@ -72,7 +72,7 @@ typedef enum natural_color
   NATURAL_COLOR_GREEN,
   NATURAL_COLOR_RED,
   NATURAL_COLOR_YELLOW,
-  NATURAL_COLOR_ORANGE
+  NATURAL_COLOR_CYAN
 } natural_color_e;
 
 typedef enum thread_metrics
@@ -93,6 +93,8 @@ typedef struct schedthread
 {
   pthread_t thread_handler;
   threadscore_t score;
+
+  natural_color_e thread_color;
 
   const char *thread_name;
   const char *context_name;
@@ -266,6 +268,7 @@ typedef struct opencl_int
 
   OCL_GETDEVICEIDS_FUNC clGetDeviceIDs;
   OCL_GETDEVICEINFO_FUNC clGetDeviceInfo;
+
   OCL_GETPLATFORMIDS_FUNC clGetPlatformIDs;
 
 } opencl_int_t;
