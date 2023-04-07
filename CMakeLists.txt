@@ -8,6 +8,8 @@ set(CMAKE_C_EXTENSIONS ON)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+set(ENB_APPLE_ASAN False)
+
 unset(CMAKE_CXX_FLAGS_RELEASE)
 unset(CMAKE_CXX_FLAGS_DEBUG)
 
@@ -38,7 +40,7 @@ target_compile_definitions(apac PRIVATE $<$<CONFIG:Debug>:APAC_IS_UNDER_DEBUG=1>
 target_compile_definitions(apac PRIVATE _GNU_SOURCE)
 
 
-if (CMAKE_C_COMPILER_ID STREQUAL Clang)
+if (CMAKE_C_COMPILER_ID STREQUAL Clang AND ${ENB_APPLE_ASAN})
   target_compile_options(apac PRIVATE $<$<CONFIG:Debug>:-gdwarf-4;-fsanitize=address>)
   if (LINUX)
     target_link_options(apac PRIVATE $<$<CONFIG:Debug>:-lasan>)
