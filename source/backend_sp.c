@@ -169,10 +169,21 @@ back_select_devices (apac_ctx_t *apac_ctx)
   snprintf (aldevice_version, sizeof aldevice_version, "%d.%d", major_version,
             minor_version);
 
-  echo_success (
-      apac_ctx, "Found OpenAL device: %s, version (ALC): %s\n",
-      alcGetString (backend->sound_device_inuse, ALC_CAPTURE_DEVICE_SPECIFIER),
-      aldevice_version);
+  const char *device_name = NULL;
+
+  /* On some platforms, `ALC_CAPTURE_DEVICE_SPECIFIER` may fail to attempt
+   * capture the device name */
+  device_name = alcGetString (backend->sound_device_inuse,
+                              ALC_CAPTURE_DEVICE_SPECIFIER);
+  if (alcGetError (backend->sound_device_inuse) != ALC_NO_ERROR)
+    device_name
+        = alcGetString (backend->sound_device_inuse, ALC_DEVICE_SPECIFIER);
+
+  if (!device_name)
+    device_name = "OpenAL (Masked)";
+
+  echo_success (apac_ctx, "Found OpenAL device: %s, version (ALC): %s\n",
+                device_name, aldevice_version);
 
   return 0;
 }
