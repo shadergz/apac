@@ -40,7 +40,7 @@ thread_sleepby (u64 by, thread_sleepconv_e conv)
 
   const u64 thread = pthread_self ();
 
-  echo_success (NULL, "Thread %lu being to sleep now!\n", thread);
+  // echo_success (NULL, "Thread %lu being to sleep now!\n", thread);
 #define THREAD_SLEEP_BF 0x10
   char sleep_bf[THREAD_SLEEP_BF] = {};
 

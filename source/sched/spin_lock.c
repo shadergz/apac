@@ -57,12 +57,8 @@ spin_wait (spinlocker_t *mutex, bool acquire)
   bool waiting[1] = { true };
 
   waiting[0] = spin_acquire (mutex, acquire);
-  if (acquire == 0 && waiting[0])
-    {
-      return 0;
-    }
 
-  if (acquire == 1 && waiting[0])
+  if (acquire == waiting[0])
     {
       spin_dirty ();
       return 1;
@@ -119,29 +115,31 @@ i32
 spin_rlock (spinlocker_t *mutex)
 {
   volatile pthread_t acthread = pthread_self ();
-  i32 locked;
+  i32 unlocked = 1;
   g_attempts[0] = 0;
   do
     {
-      locked = spin_rtrylock (mutex);
-      if (locked == -1)
+      unlocked = spin_rtrylock (mutex);
+      if (unlocked == -1)
         {
-          locked = !spin_wait (mutex, true);
+          spin_wait (mutex, true);
+          continue;
         }
 
-      if (locked == 1)
-        {
-          mutex->pid_owner = acthread;
-        }
+      if (unlocked == 1)
+        mutex->pid_owner = acthread;
     }
-  while (locked == -1 || locked == 0);
+  while (unlocked == -1);
   return 0;
 }
 
 i32
 spin_rtryunlock (spinlocker_t *mutex)
 {
-  if (!mutex->pid_owner || !pthread_equal (mutex->pid_owner, pthread_self ()))
+  if (!mutex->pid_owner)
+    return 0;
+
+  if (!pthread_equal (mutex->pid_owner, pthread_self ()))
     return -1;
 
   if (!mutex->count)
@@ -149,31 +147,27 @@ spin_rtryunlock (spinlocker_t *mutex)
       mutex->pid_owner = (pthread_t)0;
       return 1;
     }
-
   --mutex->count;
-
   return 0;
 }
 
 i32
 spin_runlock (spinlocker_t *mutex)
 {
-  i32 locked;
+  i32 locked = 1;
   g_attempts[0] = 0;
   do
     {
       locked = spin_rtryunlock (mutex);
       if (locked == -1)
         {
-          locked = !spin_wait (mutex, false);
+          spin_wait (mutex, false);
+          continue;
         }
 
       if (locked == 1)
-        {
-          spin_release (mutex);
-        }
+        spin_release (mutex);
     }
-  while (locked == -1 || locked == 0);
-
+  while (locked == -1);
   return 0;
 }

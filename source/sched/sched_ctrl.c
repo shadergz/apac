@@ -1,4 +1,3 @@
-
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -76,28 +75,6 @@ sched_getcount (const apac_ctx_t *apac_ctx)
   return count;
 }
 
-typedef struct sigaction native_sigaction_t;
-
-static i32
-sched_installsig (schedgov_t *governor)
-{
-#if defined(__ANDROID__)
-  static native_sigaction_t action
-      = { .sa_handler = worker_killsig, .sa_flags = 0 };
-#else
-  static native_sigaction_t action
-      = { .sa_handler = worker_killsig, .sa_flags = SA_INTERRUPT };
-#endif
-  sigemptyset (&action.sa_mask);
-  sigaddset (&action.sa_mask, SIGUSR1);
-  pthread_sigmask (SIG_UNBLOCK, (const sigset_t *)&action.sa_mask,
-                   &governor->thread_dflt);
-
-  sigaction (SIGUSR1, (const native_sigaction_t *)&action, NULL);
-
-  return 0;
-}
-
 static i32
 sched_set_ss (apac_ctx_t *apac_ctx)
 {
@@ -143,8 +120,6 @@ sched_init (apac_ctx_t *apac_ctx)
                "this must be reported!\n");
 
   gov->cores = ccpu;
-  sched_installsig (gov);
-
   schedthread_t *this_thread = vec_emplace (gov->threads_info);
   if (vec_ret == 0 && (sched_configure (this_thread, apac_ctx) == 0))
     {
@@ -289,3 +264,4 @@ sched_deinit (apac_ctx_t *apac_ctx)
 
   return 0;
 }
+

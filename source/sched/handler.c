@@ -1,4 +1,3 @@
-
 #include <sched/gov.h>
 #include <sched/spin_lock.h>
 #include <thread/sleep.h>
@@ -108,12 +107,12 @@ sched_stop (apac_ctx_t *apac_ctx)
 
   echo_success (apac_ctx, "Threads created: %d, threads running %d\n",
                 gov->threads_count, gov->cores);
-
   const u8 thread_count = vec_capacity (gov->threads_info);
 
   vec_reset (gov->threads_info);
   // We can't detach the main thread, just clean up it!
   schedthread_t *main_thread = vec_next (gov->threads_info);
+
   for (i32 thidx = 1; thidx < thread_count; thidx++)
     {
       schedthread_t *thXX = vec_next (gov->threads_info);

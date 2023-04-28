@@ -1,4 +1,3 @@
-
 #include <pthread.h>
 #include <signal.h>
 #include <time.h>
@@ -35,7 +34,7 @@ orchestra_die (schedthread_t *thread, apac_ctx_t *apac_ctx)
   schedgov_t *gov = apac_ctx->governor;
 
   // Detaching all thread's resource, if there's one!
-  pthread_join (thread->thread_handler, NULL);
+  // pthread_join (thread->thread_handler, NULL);
 
   spin_rlock (&gov->mutex);
   gov->threads_count--;

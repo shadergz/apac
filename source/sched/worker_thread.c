@@ -24,6 +24,28 @@ worker_killsig (i32 thrsig)
   pthread_exit (NULL);
 }
 
+typedef struct sigaction native_sigaction_t;
+
+static i32
+sched_installsig (schedgov_t *governor)
+{
+#if defined(__ANDROID__)
+  static native_sigaction_t action
+      = { .sa_handler = worker_killsig, .sa_flags = 0 };
+#else
+  static native_sigaction_t action
+      = { .sa_handler = worker_killsig, .sa_flags = SA_INTERRUPT };
+#endif
+  sigemptyset (&action.sa_mask);
+  sigaddset (&action.sa_mask, SIGUSR1);
+  pthread_sigmask (SIG_UNBLOCK, (const sigset_t *)&action.sa_mask,
+                   &governor->thread_dflt);
+
+  sigaction (SIGUSR1, (const native_sigaction_t *)&action, NULL);
+
+  return 0;
+}
+
 static const char *
 worker_doname (schedthread_t *self, char thbuffer[], u64 thsize)
 {
@@ -62,6 +84,7 @@ worker_entry (void *apac_ptr)
     pthread_exit (NULL);
 
   g_thread_gov = apac_ctx->governor;
+  sched_installsig (g_thread_gov);
 
   spin_rlock (&g_thread_gov->mutex);
   DEBUG_DUMP_STRUCT (g_thread_gov->mutex);
@@ -86,7 +109,5 @@ worker_entry (void *apac_ptr)
   for (;;)
     thread_sleepby (100, THREAD_SLEEPCONV_SECONDS);
   return NULL;
-
 }
-
 

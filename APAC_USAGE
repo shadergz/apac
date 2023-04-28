@@ -28,6 +28,6 @@ $apac --delete-history
 $apac --version
 $apac --banner=false
 
-$apac --set-config=main:use_max_cpu=false
+$apac --config-set=main:use_max_cpu=false
 $apac --help
 $apac --daemon --reject-UDP --port=30000
