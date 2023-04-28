@@ -1,4 +1,3 @@
-
 #include <pthread.h>
 #include <unistd.h>
 
@@ -11,10 +10,16 @@
 #include <debug_extra.h>
 #include <strplus.h>
 
+schedgov_t *g_thread_gov = NULL;
+
 void
 worker_killsig (i32 thrsig)
 {
   echo_success (NULL, "Thread %lu is being killed...\n", pthread_self ());
+
+  if (g_thread_gov)
+    // Release all locks
+    spin_rtryunlock (&g_thread_gov->mutex);
 
   pthread_exit (NULL);
 }
@@ -56,10 +61,10 @@ worker_entry (void *apac_ptr)
   if (!apac_ctx)
     pthread_exit (NULL);
 
-  schedgov_t *gov = apac_ctx->governor;
+  g_thread_gov = apac_ctx->governor;
 
-  spin_rlock (&gov->mutex);
-  DEBUG_DUMP_STRUCT (gov->mutex);
+  spin_rlock (&g_thread_gov->mutex);
+  DEBUG_DUMP_STRUCT (g_thread_gov->mutex);
 
   schedthread_t *self = sched_find (0, apac_ctx);
   sched_configure (self, apac_ctx);
@@ -76,9 +81,12 @@ worker_entry (void *apac_ptr)
       apac_ctx, "Thread (%s) with id %lu was started [\e[0;32mON\e[0m]\n",
       worker_doname (self, thname, sizeof thname), self->thread_handler);
 
-  gov->threads_count++;
-  spin_runlock (&gov->mutex);
+  g_thread_gov->threads_count++;
+  spin_runlock (&g_thread_gov->mutex);
   for (;;)
     thread_sleepby (100, THREAD_SLEEPCONV_SECONDS);
   return NULL;
+
 }
+
+

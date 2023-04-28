@@ -1,4 +1,3 @@
-
 #include <errno.h>
 #include <math.h>
 #include <time.h>
@@ -27,6 +26,7 @@ thread_sleepby (u64 by, thread_sleepconv_e conv)
         const u64 nano = by * (u64)pow (10, 6);
         request.tv_nsec = nano;
       }
+      break;
     case THREAD_SLEEPCONV_NANO:
       request.tv_nsec = by;
       break;
@@ -59,3 +59,4 @@ thread_sleepby (u64 by, thread_sleepconv_e conv)
   thread_restore (thread, sleep_bf);
   return 0;
 }
+

@@ -7,16 +7,10 @@
 #include <thread/ctx_now.h>
 #include <thread/sleep.h>
 
-enum spin_wait_mode
-{
-  SPIN_WAIT_ACQUIRE,
-  SPIN_WAIT_RELEASE
-};
-
 static i32
-spin_acquire (spinlocker_t *mutex)
+spin_acquire (spinlocker_t *mutex, bool test)
 {
-  const i32 mt = atomic_exchange (&mutex->locker, 1);
+  const i32 mt = atomic_exchange (&mutex->locker, test);
   return mt != 0;
 }
 
@@ -27,14 +21,7 @@ spin_release (spinlocker_t *mutex)
   return 0;
 }
 
-static i32
-spin_wait (spinlocker_t *mutex, enum spin_wait_mode mode)
-{
-#define SPIN_TEST(war, mode, mutex)                                           \
-  if (mode == SPIN_WAIT_ACQUIRE)                                              \
-    war = spin_acquire (mutex);                                               \
-  if (mode == SPIN_WAIT_RELEASE)                                              \
-    war = spin_release (mutex);
+static __thread u64 g_attempts[1] = {};
 
 #define WAIT_YIELD_BY 16
 #define WAIT_SLEEP_BY 512
@@ -42,45 +29,58 @@ spin_wait (spinlocker_t *mutex, enum spin_wait_mode mode)
 
 #define WAIT_MESSAGE_LEN 0x10
 
-  bool waiting[1] = { true };
-  u64 attempts[1] = {};
+static void
+spin_dirty ()
+{
   char wait_[WAIT_MESSAGE_LEN] = {};
-  do
+  ++g_attempts[0];
+
+  // Putting the current thread into end of the CPU priority queue!
+  if (!(g_attempts[0] % WAIT_YIELD_BY))
     {
-      ++attempts[0];
-      SPIN_TEST (waiting[0], mode, mutex);
-      if (waiting[0] == false)
-        continue;
-
-      // Putting the current thread into end of the CPU priority queue!
-      if (!(attempts[0] % WAIT_YIELD_BY))
-        {
-          thread_save (wait_, sizeof wait_, 0, "Yield state");
-          sched_yield ();
-          thread_restore (0, wait_);
-        }
-
-      if (!(attempts[0] % WAIT_SLEEP_BY))
-        {
-          thread_save (wait_, sizeof wait_, 0, "Sleep state");
-          thread_sleepby (WAIT_SLEEP_MS, THREAD_SLEEPCONV_MILI);
-          thread_restore (0, wait_);
-        }
+      thread_save (wait_, sizeof wait_, 0, "Yield state");
+      sched_yield ();
+      thread_restore (0, wait_);
     }
-  while (waiting[0] == true);
-  return waiting[0];
+
+  if (!(g_attempts[0] % WAIT_SLEEP_BY))
+    {
+      thread_save (wait_, sizeof wait_, 0, "Sleep state");
+      thread_sleepby (WAIT_SLEEP_MS, THREAD_SLEEPCONV_MILI);
+      thread_restore (0, wait_);
+    }
+}
+
+static i32
+spin_wait (spinlocker_t *mutex, bool acquire)
+{
+  bool waiting[1] = { true };
+
+  waiting[0] = spin_acquire (mutex, acquire);
+  if (acquire == 0 && waiting[0])
+    {
+      return 0;
+    }
+
+  if (acquire == 1 && waiting[0])
+    {
+      spin_dirty ();
+      return 1;
+    }
+
+  return 0;
 }
 
 i32
 spin_lock (spinlocker_t *mutex)
 {
-  i32 acq = 0;
+  i32 acquired = 0;
+  g_attempts[0] = 0;
   do
     {
-      acq = spin_acquire (mutex);
-      spin_wait (mutex, SPIN_WAIT_ACQUIRE);
+      acquired = !spin_wait (mutex, true);
     }
-  while (acq != 0);
+  while (acquired == 0);
 
   return 0;
 }
@@ -88,13 +88,13 @@ spin_lock (spinlocker_t *mutex)
 i32
 spin_unlock (spinlocker_t *mutex)
 {
-  i32 last = 0;
+  i32 unlocked = 0;
+  g_attempts[0] = 0;
   do
     {
-      last = spin_release (mutex);
-      spin_wait (mutex, SPIN_WAIT_RELEASE);
+      unlocked = !spin_wait (mutex, false);
     }
-  while (last != 0);
+  while (unlocked == 0);
 
   return 0;
 }
@@ -103,11 +103,13 @@ i32
 spin_rtrylock (spinlocker_t *mutex)
 {
   pthread_t pself = pthread_self ();
+
+  if (spin_acquire (mutex, true) == 0)
+    return 1;
+
   if (!pthread_equal (mutex->pid_owner, pself))
     return -1;
 
-  if (spin_acquire (mutex) == 0)
-    return 0;
   mutex->count++;
 
   return 0;
@@ -117,19 +119,22 @@ i32
 spin_rlock (spinlocker_t *mutex)
 {
   volatile pthread_t acthread = pthread_self ();
-
-  if (!mutex->pid_owner)
-    mutex->pid_owner = acthread;
-
-  if (spin_rtrylock (mutex) == 0)
-    return 0;
-
+  i32 locked;
+  g_attempts[0] = 0;
   do
     {
-      spin_wait (mutex, SPIN_WAIT_ACQUIRE);
-      mutex->pid_owner = acthread;
+      locked = spin_rtrylock (mutex);
+      if (locked == -1)
+        {
+          locked = !spin_wait (mutex, true);
+        }
+
+      if (locked == 1)
+        {
+          mutex->pid_owner = acthread;
+        }
     }
-  while (mutex->pid_owner != acthread);
+  while (locked == -1 || locked == 0);
   return 0;
 }
 
@@ -140,27 +145,35 @@ spin_rtryunlock (spinlocker_t *mutex)
     return -1;
 
   if (!mutex->count)
-    goto spinclean;
+    {
+      mutex->pid_owner = (pthread_t)0;
+      return 1;
+    }
 
   --mutex->count;
 
   return 0;
-
-spinclean:
-  __attribute__ ((cold));
-
-  const i32 sret = spin_release (mutex);
-  mutex->pid_owner = (pthread_t)0;
-  return sret;
 }
 
 i32
 spin_runlock (spinlocker_t *mutex)
 {
-  if (spin_rtryunlock (mutex) == 0)
-    return 0;
+  i32 locked;
+  g_attempts[0] = 0;
+  do
+    {
+      locked = spin_rtryunlock (mutex);
+      if (locked == -1)
+        {
+          locked = !spin_wait (mutex, false);
+        }
 
-  spin_wait (mutex, SPIN_WAIT_RELEASE);
+      if (locked == 1)
+        {
+          spin_release (mutex);
+        }
+    }
+  while (locked == -1 || locked == 0);
 
   return 0;
 }

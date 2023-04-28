@@ -11,6 +11,9 @@
 i32 spin_runlock (spinlocker_t *mutex);
 i32 spin_rlock (spinlocker_t *mutex);
 
+i32 spin_rtrylock (spinlocker_t *mutex);
+i32 spin_rtryunlock (spinlocker_t *mutex);
+
 [[maybe_unused]] static inline i32
 spin_init (spinlocker_t *mutex)
 {
