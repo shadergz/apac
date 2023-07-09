@@ -6,42 +6,40 @@
 
 #include <memctrlext.h>
 
-i32
-layer_vasprintf (char **restrict lstrp, const char *restrict lfmt, va_list lap)
+i32 layer_vasprintf(char** restrict lstrp, const char* restrict lfmt, va_list lap)
 {
-  va_list copy;
+    va_list copy;
 
-  va_copy (copy, lap);
-  i32 needed = vsnprintf (NULL, 0, lfmt, copy);
-  va_end (copy);
+    va_copy(copy, lap);
+    i32 needed = vsnprintf(NULL, 0, lfmt, copy);
+    va_end(copy);
 
-  if (needed < 0)
-    return needed;
+    if (needed < 0)
+        return needed;
 
-  /* This will force who is using this function to garante that what lstrp is
-   * pointer to, is null (or invalid) pointer, this may avoid some errors like
-   * override a valid function pointer inside a loop
-   */
-  if (lstrp == NULL)
-    return -1;
-  if (*lstrp != NULL)
-    return -1;
+    /* This will force who is using this function to garante that what lstrp is
+     * pointer to, is null (or invalid) pointer, this may avoid some errors like
+     * override a valid function pointer inside a loop
+     */
+    if (lstrp == NULL)
+        return -1;
+    if (*lstrp != NULL)
+        return -1;
 
-  *lstrp = (char *)apmalloc (explicit_align (++needed, 4));
-  if (*lstrp == NULL)
-    return -1;
+    *lstrp = (char*)apmalloc(explicit_align(++needed, 4));
+    if (*lstrp == NULL)
+        return -1;
 
-  return vsprintf (*lstrp, lfmt, lap);
+    return vsprintf(*lstrp, lfmt, lap);
 }
 
-i32
-layer_asprintf (char **restrict lstrp, const char *restrict lfmt, ...)
+i32 layer_asprintf(char** restrict lstrp, const char* restrict lfmt, ...)
 {
-  va_list sp;
-  va_start (sp, lfmt);
+    va_list sp;
+    va_start(sp, lfmt);
 
-  const i32 result = layer_vasprintf (lstrp, lfmt, sp);
+    const i32 result = layer_vasprintf(lstrp, lfmt, sp);
 
-  va_end (sp);
-  return result;
+    va_end(sp);
+    return result;
 }

@@ -9,14 +9,14 @@
 
 #include <api.h>
 
-external_module_t dyn_loadbyname (const char *objfile);
-external_func_t dyn_loadsymbol (external_module_t handle, const char *loadsym);
+external_module_t dyn_loadbyname(const char* objfile);
+external_func_t dyn_loadsymbol(external_module_t handle, const char* loadsym);
 
 typedef Dl_info dlinfo_t;
 
-i32 dyn_getinfo (const void *addr, dlinfo_t *fill);
-const char *dyn_getsymbolname (const void *addr, dlinfo_t *fill);
+i32 dyn_getinfo(const void* addr, dlinfo_t* fill);
+const char* dyn_getsymbolname(const void* addr, dlinfo_t* fill);
 
-i32 dyn_unload (external_module_t objaddr);
+i32 dyn_unload(external_module_t objaddr);
 
 #endif

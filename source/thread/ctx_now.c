@@ -8,36 +8,34 @@
 
 #include <thread/ctx_now.h>
 
-i32
-thread_save (char *laststatus, u64 lsize, pthread_t thread_id,
-             const char *save)
+i32 thread_save(char* laststatus, u64 lsize, pthread_t thread_id,
+    const char* save)
 {
-  if (!save || !laststatus)
-    return -1;
-  if (strlen (save) > 15)
-    return -1;
+    if (!save || !laststatus)
+        return -1;
+    if (strlen(save) > 15)
+        return -1;
 
-  if (!thread_id)
-    thread_id = pthread_self ();
+    if (!thread_id)
+        thread_id = pthread_self();
 
 #if defined(__ANDROID__)
 
-  prctl (PR_SET_NAME, (u64)laststatus, 0, 0, 0, 0);
+    prctl(PR_SET_NAME, (u64)laststatus, 0, 0, 0, 0);
 #else
 
-  pthread_getname_np (thread_id, laststatus, lsize);
+    pthread_getname_np(thread_id, laststatus, lsize);
 #endif
-  pthread_setname_np (thread_id, save);
+    pthread_setname_np(thread_id, save);
 
-  return 0;
+    return 0;
 }
 
-i32
-thread_restore (pthread_t thread_id, const char *restore)
+i32 thread_restore(pthread_t thread_id, const char* restore)
 {
-  if (!thread_id)
-    thread_id = pthread_self ();
+    if (!thread_id)
+        thread_id = pthread_self();
 
-  pthread_setname_np (thread_id, restore);
-  return 0;
+    pthread_setname_np(thread_id, restore);
+    return 0;
 }
