@@ -3,6 +3,6 @@
 
 #include <api.h>
 
-u32 cyclic32_checksum (const void *data, u64 length);
+u32 cyclic32_checksum(const void* data, u64 length);
 
 #endif

@@ -3,7 +3,7 @@
 
 #include <stdbool.h>
 
-bool cli_fmt_bool (const char *boovalue);
-bool cli_fmt_switcher (const char *switvalue);
+bool cli_fmt_bool(const char* boovalue);
+bool cli_fmt_switcher(const char* switvalue);
 
 #endif
