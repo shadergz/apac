@@ -87,7 +87,7 @@ vec_agrow(vecdie_t* vec)
     }
 
     if (vec->vec_capa < 250) {
-        /* Calculating 25 percentage of what `vec->vec_capa` currently is */
+        /* Calculating 25 percent of the current value of `vec->vec_capa` */
         double per_result = vec->vec_capa * 0.25;
         return vec->vec_capa + (u64)per_result;
     }

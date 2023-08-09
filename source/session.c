@@ -48,7 +48,7 @@ dsp_banner(apac_ctx_t* apac_ctx)
     const i32 print_res
         = echo_success(apac_ctx,
             "Apac (version %s) rev.%s "
-            "Copyright (C) 2023 the Apac's developers\n",
+            "Copyright (C) 2023 the Apac's developers (Gabriel Correia)\n",
             s_apac_version, s_apac_rev);
 
     return print_res;
@@ -132,7 +132,7 @@ i32 session_backend(apac_ctx_t* apac_ctx)
 {
     const i32 back = back_init(apac_ctx);
     if (back != 0) {
-        echo_error(apac_ctx, "Backend components wasn't be initialized\n");
+        echo_error(apac_ctx, "Backend components weren't initialized\n");
     }
     return back;
 }
@@ -201,7 +201,7 @@ i32 session_init(i32 argc, char* argv[], apac_ctx_t* apac_ctx)
     if ((sret = session_lock(apac_ctx) != 0))
         goto lock_failed;
 
-    echo_info(apac_ctx, "Core session has initialized with all components!\n");
+    echo_info(apac_ctx, "The core session has been initialized successfully with all required components!\n");
 
     goto ret_now;
 
