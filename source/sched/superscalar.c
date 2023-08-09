@@ -1,3 +1,4 @@
+#include <errno.h>
 #include <fcntl.h>
 #include <sched.h>
 #include <unistd.h>
@@ -219,7 +220,13 @@ scalar_frequency(u8 core_id)
     if (scalar_fd < 0)
         return -1;
 
-    read(scalar_fd, fb_buffer, sizeof fb_buffer);
+    const int sc_read = read(scalar_fd, fb_buffer, sizeof fb_buffer);
+
+    if (sc_read == -1) {
+        echo_error(NULL, "An attempt to read a file from the filename %s with the descriptor %d has failed due to: %s\n", scalar_freq, scalar_fd, strerror(errno));
+        return -1;
+    }
+
     double fhz;
     sscanf(fb_buffer, "%lf", &fhz);
 

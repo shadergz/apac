@@ -2,6 +2,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+#include <echo/fmt.h>
 #include <storage/fhandler.h>
 
 i32 fio_ondisk(storage_fio_t* file, u64 offset, u64 len, fio_ondisk_e method_type)
@@ -9,14 +10,22 @@ i32 fio_ondisk(storage_fio_t* file, u64 offset, u64 len, fio_ondisk_e method_typ
     if (!file)
         return -1;
 
+    int truncated = 0;
+
     switch (method_type) {
     case FIO_ONDISK_PREALLOCATE:
         posix_fallocate(file->file_fd, offset, len);
         break;
     case FIO_ONDISK_TRUNCATE:
-        ftruncate(file->file_fd, len);
+        truncated = ftruncate(file->file_fd, len);
         if (file->cursor_offset > len)
             file->cursor_offset = len;
+    }
+
+    if (truncated != 0) {
+        echo_error(NULL, "ftruncate() has failed to truncate file with name %s\n",
+            file->file_name);
+        return -1;
     }
 
     return 0;

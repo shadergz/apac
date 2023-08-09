@@ -30,6 +30,10 @@ dsp_help(apac_ctx_t* apac_ctx)
 
     const i32 result = echo_success(apac_ctx, "%s\n", g_usagemsg);
 
+    exit(0);
+
+    __builtin_unreachable();
+
     return result;
 }
 

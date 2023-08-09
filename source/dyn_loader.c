@@ -59,7 +59,7 @@ dyn_getsymbolname(const void* addr, dlinfo_t* fill)
     const i32 ret = dladdr(addr, fill);
 
     echo_debug(NULL,
-        "Attempt to locate a object symbol "
+        "Attempt to locate an object symbol "
         "name with %p address has %s\n",
         addr, fill->dli_sname ? "successed" : "failed");
     if (ret == 0) {
